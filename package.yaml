@@ -1,0 +1,56 @@
+name:                duden
+version:             0.1.0
+synopsis:            Query duden search results from within your terminal
+license:             AGPL-3
+author:              slotThe
+maintainer:          soliditsallgood@mailbox.org
+
+default-extensions:
+  - OverloadedStrings
+  - BlockArguments
+  - ScopedTypeVariables
+  - DeriveGeneric
+  - DerivingStrategies
+  - DataKinds
+  - TypeOperators
+  - FlexibleInstances
+  - StandaloneDeriving
+  - NamedFieldPuns
+  - LambdaCase
+  - InstanceSigs
+  - OverloadedLabels
+
+ghc-options:
+  -O2
+  -Wall
+  -Wcompat
+  -Wincomplete-record-updates
+  -Wincomplete-uni-patterns
+  -Wredundant-constraints
+
+library:
+  source-dirs: lib
+
+dependencies:
+  - base-noprelude
+  - base-prelude
+  - http-conduit
+  - async
+  - text
+  - bytestring
+  - attoparsec
+  - html-parse
+  - optparse-applicative
+  - optparse-applicative-util
+  - microlens
+  - generic-lens
+
+executables:
+  duden:
+    source-dirs: app
+    main: Main.hs
+    dependencies: duden
+    ghc-options:
+      -threaded
+      -rtsopts
+      -with-rtsopts=-N
