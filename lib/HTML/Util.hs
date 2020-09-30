@@ -35,6 +35,7 @@ module HTML.Util
     -- * Misc
   , fromContentText    -- :: Token -> Text
   , cleanWord          -- :: String -> String
+  , notNullWith        -- :: Foldable t => (t a -> a) -> t a -> Maybe a
   ) where
 
 import qualified Data.ByteString.Lazy.Char8 as BL
@@ -42,14 +43,7 @@ import qualified Data.List.NonEmpty         as NE
 import qualified Data.Text as T
 
 import Network.HTTP.Conduit (Manager, Request, httpLbs, parseRequest, responseBody)
--- import Text.HTML.TagSoup (Token(TagOpen), (~/=), fromTagText, isTagText, parseTags, sections)
-import Text.HTML.Parser
-    ( Attr(Attr)
-    , AttrName
-    , AttrValue
-    , Token(Comment, ContentText, TagClose, TagOpen)
-    , parseTokens
-    )
+import Text.HTML.Parser (Attr(Attr), AttrName, AttrValue, Token(Comment, ContentText, TagClose, TagOpen), parseTokens)
 
 -- | Make a request and parse the response body into 'Tag's.
 getTags :: Manager -> Request -> IO [Token]
@@ -78,15 +72,18 @@ isContentText = \case
     ContentText{} -> True
     _             -> False
 
--- | Extract the string from within 'TagText', crashes if not a 'TagText'
+-- | Extract the string from within 'ContentText', crashes if not a
+-- 'ContentText'.
 fromContentText :: Token -> Text
 fromContentText = \case
     ContentText t -> t
     a             -> error $ "(" ++ show a ++ ") is not a ContentText"
 
--- | Get the first 'TagText' element from a list of 'Tag's.
+-- | Get the first 'ContentText' element from a list of 'Token's.  If no tag
+-- could be found, return an empty string.
 toHeadContentText :: [Token] -> Text
-toHeadContentText = filter isContentText .> nonEmpty .> maybe "" (NE.head .> fromContentText)
+toHeadContentText =
+  filter isContentText .> nonEmpty .> maybe "" (NE.head .> fromContentText)
 
 -- | Get all tags between @start@ and @end@.
 between :: Token -> Token -> [Token] -> [Token]
@@ -114,6 +111,10 @@ cleanWord = concatMap \case
   'ß' -> "ss"
   c   -> [c]
 
+notNullWith :: Foldable t => (t a -> a) -> t a -> Maybe a
+notNullWith f t = if null t then Nothing else Just (f t)
+{-# INLINE notNullWith #-}
+
 divTag :: Text -> Token
 divTag t = TagOpen "div" [Attr "class" "division ", Attr "id" t]
 
@@ -132,18 +133,14 @@ infoTag t = TagOpen "a" [ Attr "target" "_blank"
   f (Comment     x) (Comment     y) = x == mempty || x == y
   f (TagOpen  y ys) (TagOpen  x xs) = (T.null x || x == y) && all g xs
    where
-     g :: Attr -> Bool
-     g = \case
-       Attr name val | T.null name -> val  `elem` map attrSnd ys
-                     | T.null val  -> name `elem` map attrFst ys
-       nameval      -> nameval `elem` ys
+    g :: Attr -> Bool
+    g = \case
+      Attr name val | T.null name -> val  `elem` map attrSnd ys
+                    | T.null val  -> name `elem` map attrFst ys
+      nameval      -> nameval `elem` ys
+    attrFst :: Attr -> AttrName  = \(Attr o _) -> o
+    attrSnd :: Attr -> AttrValue = \(Attr _ t) -> t
   f _ _ = False
 
 (~/=) :: Token -> Token -> Bool
 (~/=) = (not .) . (~==)
-
-attrFst :: Attr -> AttrName
-attrFst (Attr a _) = a
-
-attrSnd :: Attr -> AttrValue
-attrSnd (Attr _ b) = b

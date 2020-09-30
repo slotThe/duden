@@ -22,10 +22,10 @@ import Data.Generics.Labels ()
 -- | Entry for a single word.
 data DudenWord = DudenWord
   { name      :: !Text
-  , wordClass :: !Text
+  , wordClass :: !(Maybe Text)
   , usage     :: !(Maybe Text)
   , meaning   :: !WordMeaning
-  , synonyms  :: !Text
+  , synonyms  :: !(Maybe Text)
   } deriving (Generic)
 
 -- | A word may have multiple meanings.
@@ -49,12 +49,22 @@ instance Show Section where
     Meaning   -> "Bedeutung"
     Synonyms  -> "Synonyme: "
 
-ppSection :: DudenWord -> Section -> Text
+ppWord :: DudenWord -> [Section] -> Text
+ppWord dw = map (ppSection (removeNewlines dw))
+         .> catMaybes
+         .> (wordName :)
+         .> T.unlines
+ where
+  wordName :: Text = bold (dw ^. #name) <> "\n" <> T.replicate 79 "-"
+  bold :: Text -> Text
+  bold s = "\x1b[1m"  <> s <> "\x1b[0m"
+
+ppSection :: DudenWord -> Section -> Maybe Text
 ppSection DudenWord{ meaning, usage, wordClass, synonyms } = \case
-  WordClass -> style (tshow WordClass) <> wordClass
-  Usage     -> maybe "" (style (tshow Usage) <>) usage
-  Meaning   -> ppMeaning
-  Synonyms  -> style (tshow Synonyms) <> synonyms
+  WordClass -> wordClass <&> pp WordClass
+  Usage     -> usage     <&> pp Usage
+  Meaning   -> Just ppMeaning
+  Synonyms  -> synonyms  <&> pp Synonyms
  where
   ppMeaning :: Text = style (tshow Meaning) <> case meaning of
     Single   t  -> style (": ")   <> t
@@ -64,24 +74,17 @@ ppSection DudenWord{ meaning, usage, wordClass, synonyms } = \case
   style :: Text -> Text
   style s = "\x1b[33m" <> s <> "\x1b[0m"
 
-ppWord :: DudenWord -> [Section] -> Text
-ppWord dw = map (ppSection (removeNewlines dw))
-         .> filter (/= "")
-         .> (wordName :)
-         .> T.unlines
- where
-  wordName = bold (dw ^. #name) <> "\n" <> T.replicate 79 "-"
-  bold :: Text -> Text
-  bold s = "\x1b[1m"  <> s <> "\x1b[0m"
+  pp :: Section -> Text -> Text
+  pp s = (style (tshow s) <>)
 
 removeNewlines :: DudenWord -> DudenWord
 removeNewlines dw =
-  dw & #name           %~ f
-     & #wordClass      %~ f
-     & #usage . mapped %~ f
-     & #meaning        %~ \case
+  dw & #name       %~  f
+     & #wordClass  %~~ f
+     & #usage      %~~ f
+     & #meaning    %~  \case
          Single   t  -> Single   (t   &  f)
          Multiple ts -> Multiple (ts <&> f)
-     & #synonyms       %~ f
+     & #synonyms   %~~ f
  where
   f :: Text -> Text = T.filter (/= '\n')
