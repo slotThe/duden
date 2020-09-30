@@ -9,17 +9,9 @@ default-extensions:
   - OverloadedStrings
   - BlockArguments
   - ScopedTypeVariables
-  - DeriveGeneric
-  - DerivingStrategies
-  - DataKinds
-  - TypeOperators
-  - FlexibleInstances
-  - StandaloneDeriving
   - NamedFieldPuns
   - LambdaCase
   - InstanceSigs
-  - OverloadedLabels
-  - RankNTypes
 
 ghc-options:
   -O2
@@ -28,6 +20,10 @@ ghc-options:
   -Wincomplete-record-updates
   -Wincomplete-uni-patterns
   -Wredundant-constraints
+  -Widentities
+  -Wmissing-local-signatures
+  -Wmissing-export-lists
+  -Wmissed-specialisations
 
 library:
   source-dirs: lib
@@ -43,8 +39,6 @@ dependencies:
   - html-parse
   - optparse-applicative
   - optparse-applicative-util
-  - microlens
-  - generic-lens
 
 executables:
   duden:

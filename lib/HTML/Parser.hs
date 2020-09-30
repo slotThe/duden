@@ -13,7 +13,7 @@ module HTML.Parser
   ) where
 
 import HTML.Types (DudenWord(DudenWord, meaning, name, synonyms, usage, wordClass), Section, WordMeaning(Multiple, Single), ppWord)
-import HTML.Util (notNullWith, (~==), allContentText, between, divTag, dropHeader, fromContentText, getTags, infoTag, isContentText, makeRequestWith, section, sections, toHeadContentText)
+import HTML.Util ((~==), allContentText, between, divTag, dropHeader, fromContentText, getTags, infoTag, isContentText, makeRequestWith, notNull, section, sections, toHeadContentText)
 
 import qualified Data.Text as T
 
@@ -23,9 +23,8 @@ import Text.HTML.Parser (Attr(Attr), Token(TagClose, TagOpen))
 
 lookForWords :: Manager -> String -> IO [String]
 lookForWords man word =
-  catch  (  parseRequest (wordSearch word) >>= getTags man
-        <&> getWords .> map T.unpack
-         )
+  catch (parseRequest (wordSearch word) >>= getTags man
+                                        <&> getWords .> map T.unpack)
         \(e :: SomeException) -> pure [show e]
  where
   getWords :: [Token] -> [Text]
@@ -56,17 +55,14 @@ getSynonyms
   .> dropHeader "division__header"
   .> between (TagOpen "ul" []) (TagClose "ul")
   .> allContentText
-  .> notNullWith mconcat
+  .> notNull
 
 getWordClass :: [Token] -> Maybe Text
-getWordClass = betweenTupleVal (infoTag "wortart") .> notNullWith T.unlines
+getWordClass = betweenTupleVal (infoTag "wortart") .> notNull
 
 -- | Sometimes no usage information is given.
 getUsage :: [Token] -> Maybe Text
-getUsage tags = notNullWith T.unlines (betweenTupleVal (infoTag "gebrauch") tags)
- --  if null ws then Nothing else Just (T.unlines ws)
- -- where
- --  ws :: [Text] = betweenTupleVal (infoTag "gebrauch") tags
+getUsage tags = notNull (betweenTupleVal (infoTag "gebrauch") tags)
 
 betweenTupleVal :: Token -> [Token] -> [Text]
 betweenTupleVal tag tags

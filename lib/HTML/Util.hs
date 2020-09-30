@@ -36,6 +36,7 @@ module HTML.Util
   , fromContentText    -- :: Token -> Text
   , cleanWord          -- :: String -> String
   , notNullWith        -- :: Foldable t => (t a -> a) -> t a -> Maybe a
+  , notNull            -- :: Monoid a => [a] -> Maybe a
   ) where
 
 import qualified Data.ByteString.Lazy.Char8 as BL
@@ -110,6 +111,12 @@ cleanWord = concatMap \case
   'Ö' -> "oe"
   'ß' -> "ss"
   c   -> [c]
+
+-- | Like 'notNullWith', but just throw everything together with an 'mconcat' at
+-- the end.
+notNull :: Monoid a => [a] -> Maybe a
+notNull = notNullWith mconcat
+{-# INLINE notNull #-}
 
 notNullWith :: Foldable t => (t a -> a) -> t a -> Maybe a
 notNullWith f t = if null t then Nothing else Just (f t)

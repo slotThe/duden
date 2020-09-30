@@ -17,11 +17,9 @@ module Prelude
   , putTextLn   -- :: Text -> IO ()
   , tshow       -- :: Show a => a -> Text
   , (.>)        -- :: (a -> b) -> (b -> c) -> (a -> c)
-  , (%~~)       -- :: Functor f => Lens s t (f a) (f b) -> (a -> b) -> s -> t
   ) where
 
 import BasePrelude as Exports hiding (option)
-import Lens.Micro as Exports hiding (lazy)
 
 import qualified Data.ByteString      as BS
 import qualified Data.ByteString.Lazy as BL
@@ -45,8 +43,3 @@ infixr 9 .>
 -- | Covariant version of '(.)'.
 (.>) :: (a -> b) -> (b -> c) -> (a -> c)
 (.>) = (>>>)
-
-infixr 4 %~~
--- | Apply a function through a functor.
-(%~~) :: Functor f => Lens s t (f a) (f b) -> (a -> b) -> s -> t
-(%~~) l ab s = s & l.mapped %~ ab

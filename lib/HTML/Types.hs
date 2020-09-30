@@ -16,17 +16,15 @@ module HTML.Types
 
 import qualified Data.Text as T
 
-import Data.Generics.Labels ()
 
-
--- | Entry for a single word.
+-- | Entry for a single word where not all sections have to be present.
 data DudenWord = DudenWord
   { name      :: !Text
   , wordClass :: !(Maybe Text)
   , usage     :: !(Maybe Text)
   , meaning   :: !WordMeaning
   , synonyms  :: !(Maybe Text)
-  } deriving (Generic)
+  }
 
 -- | A word may have multiple meanings.
 data WordMeaning
@@ -49,16 +47,18 @@ instance Show Section where
     Meaning   -> "Bedeutung"
     Synonyms  -> "Synonyme: "
 
+-- | Pretty print the given 'Section's of a single word entry.
 ppWord :: DudenWord -> [Section] -> Text
-ppWord dw = map (ppSection (removeNewlines dw))
-         .> catMaybes
-         .> (wordName :)
-         .> T.unlines
+ppWord dw@DudenWord{ name }
+   = map (ppSection dw)
+  .> catMaybes
+  .> (wordName :)
+  .> T.unlines
  where
-  wordName :: Text = bold (dw ^. #name) <> "\n" <> T.replicate 79 "-"
-  bold :: Text -> Text
-  bold s = "\x1b[1m"  <> s <> "\x1b[0m"
+  wordName :: Text         = bold name <> "\n" <> T.replicate 79 "-"
+  bold     :: Text -> Text = \s -> "\x1b[1m" <> s <> "\x1b[0m"
 
+-- | Given a word entry, pretty print a single 'Section' (if present).
 ppSection :: DudenWord -> Section -> Maybe Text
 ppSection DudenWord{ meaning, usage, wordClass, synonyms } = \case
   WordClass -> wordClass <&> pp WordClass
@@ -66,9 +66,9 @@ ppSection DudenWord{ meaning, usage, wordClass, synonyms } = \case
   Meaning   -> Just ppMeaning
   Synonyms  -> synonyms  <&> pp Synonyms
  where
-  ppMeaning :: Text = style (tshow Meaning) <> case meaning of
-    Single   t  -> style (": ")   <> t
-    Multiple ts -> style ("en: ") <> foldl' (\str t -> "\n  - " <> t <> str) "" ts
+  ppMeaning :: Text = pp Meaning $ case meaning of
+    Single   t  -> style ": "   <> t
+    Multiple ts -> style "en: " <> foldl' (\str t -> "\n  - " <> t <> str) "" ts
 
   -- | See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
   style :: Text -> Text
@@ -76,15 +76,3 @@ ppSection DudenWord{ meaning, usage, wordClass, synonyms } = \case
 
   pp :: Section -> Text -> Text
   pp s = (style (tshow s) <>)
-
-removeNewlines :: DudenWord -> DudenWord
-removeNewlines dw =
-  dw & #name       %~  f
-     & #wordClass  %~~ f
-     & #usage      %~~ f
-     & #meaning    %~  \case
-         Single   t  -> Single   (t   &  f)
-         Multiple ts -> Multiple (ts <&> f)
-     & #synonyms   %~~ f
- where
-  f :: Text -> Text = T.filter (/= '\n')
