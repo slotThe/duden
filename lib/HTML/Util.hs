@@ -7,8 +7,8 @@
    Stability   : experimental
    Portability : non-portable
 
-   Some of this is stolen from the 'tagsoup' package, because 'parse-html' is
-   (while faster) somewhat bare-bones.
+Some of this is stolen from the 'tagsoup' package, because 'parse-html' is
+(while faster) somewhat bare-bones.
 -}
 module HTML.Util
   ( -- * Making requests
@@ -20,6 +20,7 @@ module HTML.Util
   , section            -- :: (a -> Bool) -> [a] -> [a]
   , toHeadContentText  -- :: [Token] -> Text
   , between            -- :: String -> String -> [Token] -> [Token]
+  , betweenTupleVal    -- :: Token -> [Token] -> [Text]
   , dropHeader         -- :: String -> [Token] -> [Token]
   , allContentText     -- :: [Token] -> [Text]
 
@@ -46,7 +47,7 @@ import qualified Data.Text as T
 import Network.HTTP.Conduit (Manager, Request, httpLbs, parseRequest, responseBody)
 import Text.HTML.Parser (Attr(Attr), AttrName, AttrValue, Token(Comment, ContentText, TagClose, TagOpen), parseTokens)
 
--- | Make a request and parse the response body into 'Tag's.
+-- | Make a request and parse the response body into 'Token's.
 getTags :: Manager -> Request -> IO [Token]
 getTags man req =
   httpLbs req man <&> responseBody .> BL.toStrict .> decodeUtf8 .> parseTokens
@@ -92,15 +93,27 @@ between start end = dropWhile (~/= start)
                  .> drop 1                 -- drop the tag
                  .> takeWhile (~/= end)
 
+-- | Get the first 'ContentText' out of some tuple__val tag.
+betweenTupleVal :: Token -> [Token] -> [Text]
+betweenTupleVal tag tags
+   =  sections (~== tag) tags
+  <&> between (TagOpen "dd" [Attr "class" "tuple__val"]) (TagClose "dd")
+   .> toHeadContentText
+
+-- | Drop an HTML header (i.e. the header tags and everything inbetween) from a
+-- list of 'Token's.
 dropHeader :: Text -> [Token] -> [Token]
 dropHeader hname = dropWhile (~/= TagOpen "header" [Attr "class" hname])
                 .> dropWhile (~/= TagClose "header")
                 .> drop 1
 
+-- | Get all 'ContentText' entries from a list of 'Token's and extract their
+-- content.
 allContentText :: [Token] -> [Text]
 allContentText = filter isContentText .> map fromContentText
 
--- TODO: there's probably a cleverer way to do this
+-- | Word pages are accessed with ASCII only, so we need to replace Umlauts for
+-- certain lookups.
 cleanWord :: String -> String
 cleanWord = concatMap \case
   'ä' -> "ae"
@@ -118,26 +131,30 @@ notNull :: Monoid a => [a] -> Maybe a
 notNull = notNullWith mconcat
 {-# INLINE notNull #-}
 
+-- | Check if some container is null; if not then apply some function to it.
 notNullWith :: Foldable t => (t a -> a) -> t a -> Maybe a
 notNullWith f t = if null t then Nothing else Just (f t)
 {-# INLINE notNullWith #-}
 
+-- | This kind of tag is often used at the start of a certain section.
 divTag :: Text -> Token
 divTag t = TagOpen "div" [Attr "class" "division ", Attr "id" t]
 
+-- | This kind of tag is often used at the start of a certain section.
 infoTag :: Text -> Token
 infoTag t = TagOpen "a" [ Attr "target" "_blank"
                         , Attr "class"  "info-ref"
                         , Attr "href"   ("/hilfe/" <> t)
                         ]
 
+infixl 9 ~==
 -- | Performs an inexact match, the first item should be the thing to match.
 (~==) :: Token -> Token -> Bool
 (~==) a b = f a b
  where
-  f (ContentText y) (ContentText x) = T.null x    || x == y
-  f (TagClose    y) (TagClose    x) = T.null x    || x == y
-  f (Comment     x) (Comment     y) = x == mempty || x == y
+  f (ContentText y) (ContentText x) = T.null x             || x == y
+  f (TagClose    y) (TagClose    x) = T.null x             || x == y
+  f (Comment     x) (Comment     y) = x == mempty          || x == y
   f (TagOpen  y ys) (TagOpen  x xs) = (T.null x || x == y) && all g xs
    where
     g :: Attr -> Bool
@@ -149,5 +166,7 @@ infoTag t = TagOpen "a" [ Attr "target" "_blank"
     attrSnd :: Attr -> AttrValue = \(Attr _ t) -> t
   f _ _ = False
 
+infixl 9 ~/=
+-- | Negation of '(~==)'.
 (~/=) :: Token -> Token -> Bool
 (~/=) = (not .) . (~==)

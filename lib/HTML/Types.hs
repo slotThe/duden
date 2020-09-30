@@ -6,11 +6,20 @@
    Maintainer  : slotThe <soliditsallgood@mailbox.org>
    Stability   : experimental
    Portability : non-portable
+
+Here we define the types we scrape the appropriate info into.  In addition, we
+define sections to be printed.  This way the user can later specify exactly the
+kind of information they want to see.
+
+We also define a pretty printing function to fit all of this together.
 -}
 module HTML.Types
-  ( DudenWord(..)    -- instances: Generic
+  ( -- * Types
+    DudenWord(..)
   , WordMeaning(..)
   , Section(..)      -- instances: Eq, Show
+
+    -- * Pretty printing
   , ppWord           -- :: DudenWord -> [Section] -> Text
   ) where
 
@@ -49,30 +58,29 @@ instance Show Section where
 
 -- | Pretty print the given 'Section's of a single word entry.
 ppWord :: DudenWord -> [Section] -> Text
-ppWord dw@DudenWord{ name }
-   = map (ppSection dw)
-  .> catMaybes
-  .> (wordName :)
-  .> T.unlines
+ppWord dw@DudenWord{ name } =
+  map (ppSection dw) .> catMaybes .> (wordName :) .> unlines
  where
-  wordName :: Text         = bold name <> "\n" <> T.replicate 79 "-"
-  bold     :: Text -> Text = \s -> "\x1b[1m" <> s <> "\x1b[0m"
+  wordName :: Text = style 1 name <> "\n" <> T.replicate 79 "-"  -- 1 = bold
 
 -- | Given a word entry, pretty print a single 'Section' (if present).
 ppSection :: DudenWord -> Section -> Maybe Text
 ppSection DudenWord{ meaning, usage, wordClass, synonyms } = \case
-  WordClass -> wordClass <&> pp WordClass
-  Usage     -> usage     <&> pp Usage
+  WordClass -> wordClass      <&> pp WordClass
+  Usage     -> usage          <&> pp Usage
   Meaning   -> Just ppMeaning
-  Synonyms  -> synonyms  <&> pp Synonyms
+  Synonyms  -> synonyms       <&> pp Synonyms
  where
   ppMeaning :: Text = pp Meaning $ case meaning of
-    Single   t  -> style ": "   <> t
-    Multiple ts -> style "en: " <> foldl' (\str t -> "\n  - " <> t <> str) "" ts
-
-  -- | See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
-  style :: Text -> Text
-  style s = "\x1b[33m" <> s <> "\x1b[0m"
+    Single   t  -> style 33 ": "   <> t
+    Multiple ts -> style 33 "en: " <> foldl' (\str t -> "\n  - " <> t <> str) "" ts
 
   pp :: Section -> Text -> Text
-  pp s = (style (tshow s) <>)
+  pp s = (style 33 (tshow s) <>)
+
+-- | See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
+style :: Int -> Text -> Text
+style i s = mconcat ["\x1b[", tshow i, "m"
+                    , s
+                    , "\x1b[0m"
+                    ]

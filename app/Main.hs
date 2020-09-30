@@ -11,8 +11,8 @@ module Main
   ( main  -- :: IO ()
   ) where
 
-import CLI.Parser (Options(Options, maxShown, onlyUsage, sections, word), options)
-import HTML.Parser (lookForWords, lookupWord)
+import CLI.Parser (Options(Options, maxShown, onlyLookup, onlyUsage, sections, word), options)
+import HTML.Parser (searchForWord, lookupWord)
 import HTML.Types (Section(Usage))
 
 import Control.Concurrent.Async (mapConcurrently)
@@ -22,14 +22,19 @@ import Options.Applicative (execParser)
 
 main :: IO ()
 main = do
-  Options{ maxShown, word, sections, onlyUsage } <- execParser options
+  Options{ maxShown, word, sections, onlyUsage, onlyLookup } <- execParser options
   man <- newManager tlsManagerSettings
 
-  let sns = if onlyUsage then [Usage] else sections
+  -- Sections to print.
+  let sns = if onlyUsage   then [Usage] else sections
 
-  ws <- lookForWords man word
-    >>= (if maxShown == 0 then id else take maxShown)
-     .> mapConcurrently (lookupWord man sns)
+  -- Whether to search for the word or look it up directly.
+  if   onlyLookup
+  then putTextLn =<< lookupWord man sns word
+  else do
+    ws <- searchForWord man word
+      >>= (if maxShown == 0 then id else take maxShown)
+       .> mapConcurrently (lookupWord man sns)
 
-  -- Output words in the order they appear on the website.
-  traverse_ putTextLn ws
+    -- Output words in the order they appear on the website.
+    traverse_ putTextLn ws

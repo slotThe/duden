@@ -6,14 +6,18 @@
    Maintainer  : slotThe <soliditsallgood@mailbox.org>
    Stability   : experimental
    Portability : non-portable
+
+Here we actually scrape the HMTL that interests us.  Due to the very nature of
+HTML scraping, this is very much written in more of a "it's not pretty, but it
+works for now and it's pretty easy to rewrite" kind of way.
 -}
 module HTML.Parser
-  ( lookForWords  -- :: Manager -> String -> IO [String]
-  , lookupWord    -- :: Manager -> [Section] -> String -> IO Text
+  ( searchForWord  -- :: Manager -> String -> IO [String]
+  , lookupWord     -- :: Manager -> [Section] -> String -> IO Text
   ) where
 
 import HTML.Types (DudenWord(DudenWord, meaning, name, synonyms, usage, wordClass), Section, WordMeaning(Multiple, Single), ppWord)
-import HTML.Util ((~==), allContentText, between, divTag, dropHeader, fromContentText, getTags, infoTag, isContentText, makeRequestWith, notNull, section, sections, toHeadContentText)
+import HTML.Util (betweenTupleVal, (~==), allContentText, between, divTag, dropHeader, fromContentText, getTags, infoTag, isContentText, makeRequestWith, notNull, section, sections, toHeadContentText)
 
 import qualified Data.Text as T
 
@@ -21,34 +25,41 @@ import Network.HTTP.Conduit (Manager, parseRequest)
 import Text.HTML.Parser (Attr(Attr), Token(TagClose, TagOpen))
 
 
-lookForWords :: Manager -> String -> IO [String]
-lookForWords man word =
-  catch (parseRequest (wordSearch word) >>= getTags man
-                                        <&> getWords .> map T.unpack)
+-- | Search for the word on the Duden website.
+searchForWord :: Manager -> String -> IO [String]
+searchForWord man word =
+  catch (parseRequest (wordSearch word)
+           >>= getTags man
+           <&> getWords .> map T.unpack)
         \(e :: SomeException) -> pure [show e]
  where
+  -- | Return the search results as a list of values (i.e. each element in the
+  -- list will be one word to later look up).
   getWords :: [Token] -> [Text]
   getWords tags = if null ws then ["Nichts gefunden :("] else ws
    where
     ws :: [Text]
-       =  sections (~== TagOpen "h2" [Attr "class" "vignette__title"]) tags
+        = sections (~== TagOpen "h2" [Attr "class" "vignette__title"]) tags
       <&> filter isContentText
        .> (!! 2)                -- ouch
        .> fromContentText
-       .> T.filter (/= '\173')
+       .> T.filter (/= '\173')  -- "-"
 
+-- | Look up the entry for a word on the Duden website.
 lookupWord :: Manager -> [Section] -> String -> IO Text
 lookupWord man sns word =
   catch do tags <- makeRequestWith wordPage word >>= getTags man
-           pure $ ppWord DudenWord{ name      = T.pack word
-                                  , meaning   = getMeaning   tags
-                                  , usage     = getUsage     tags
-                                  , wordClass = getWordClass tags
-                                  , synonyms  = getSynonyms  tags
-                                  }
-                         sns
-        \(e :: SomeException) -> pure (tshow e)
+           ppWord DudenWord{ name      = fromString   word
+                           , meaning   = getMeaning   tags
+                           , usage     = getUsage     tags
+                           , wordClass = getWordClass tags
+                           , synonyms  = getSynonyms  tags
+                           }
+                  sns
+            & pure
+        \(e :: SomeException) -> e & tshow .> pure
 
+-- | Try to get all of the synonyms (Synonyme) of a word.
 getSynonyms :: [Token] -> Maybe Text
 getSynonyms
    = section (~== divTag "synonyme")
@@ -57,19 +68,16 @@ getSynonyms
   .> allContentText
   .> notNull
 
+-- | Try to got the word class (Wortart) of a word.
 getWordClass :: [Token] -> Maybe Text
 getWordClass = betweenTupleVal (infoTag "wortart") .> notNull
 
--- | Sometimes no usage information is given.
+-- | Try to get the usage (Gebrauch) of a word.
 getUsage :: [Token] -> Maybe Text
 getUsage tags = notNull (betweenTupleVal (infoTag "gebrauch") tags)
 
-betweenTupleVal :: Token -> [Token] -> [Text]
-betweenTupleVal tag tags
-   =  sections (~== tag) tags
-  <&> between (TagOpen "dd" [Attr "class" "tuple__val"]) (TagClose "dd")
-   .> toHeadContentText
-
+-- | Get the meaning (Bedeutung) of a word.  This may be a single meaning or
+-- multiple ones.
 getMeaning :: [Token] -> WordMeaning
 getMeaning tags
   | T.null singleMeaning = Multiple multipleMeanings
@@ -83,8 +91,7 @@ getMeaning tags
 
   multipleMeanings :: [Text]
      = tags
-     & section  (~== meanings)
-    .> sections (~== meaningsText)
+     & section (~== meanings) .> sections (~== meaningsText)
     .> map (between meaningsText (TagClose "div") .> allContentText .> mconcat)
     .> reverse  -- Same order as on the website.
 
@@ -93,9 +100,11 @@ getMeaning tags
   meanings = divTag "bedeutungen"
   meaningsText :: Token = TagOpen "div" [Attr "class" "enumeration__text"]
 
+-- | Searching for a word.
 wordSearch :: String -> String
 wordSearch = ("https://www.duden.de/suchen/dudenonline/" <>)
 
+-- | Looking up a word directly.
 wordPage :: String -> String
 wordPage = ("https://www.duden.de/rechtschreibung/" <>)
 
@@ -104,4 +113,4 @@ wordPage = ("https://www.duden.de/rechtschreibung/" <>)
 -- htmlForWord man word = do
 --   req <- makeRequestWith wordPage word
 --   httpLbs req man >>=
---     responseBody .> BL.toStrict .> decodeUtf8 .> T.writeFile (word ++ ".htm")
+--     responseBody .> BL.toStrict .> decodeUtf8 .> writeFile (word ++ ".htm")

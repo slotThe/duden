@@ -22,10 +22,11 @@ import Options.Applicative.Util (AttoParser, anyOf, splitWith)
 
 -- | Options the user may give to the tool via the command line.
 data Options = Options
-  { word      :: String     -- ^ Positional argument: word to look up
-  , maxShown  :: Int        -- ^ Max hits to show
-  , sections  :: [Section]  -- ^ What to show
-  , onlyUsage :: Bool       -- ^ Only show the usage field
+  { word       :: !String     -- ^ Positional argument: word to look up
+  , maxShown   :: !Int        -- ^ Max hits to show
+  , sections   :: ![Section]  -- ^ What to show
+  , onlyUsage  :: !Bool       -- ^ Only show the usage field
+  , onlyLookup :: !Bool       -- ^ Look up this word verbatim
   }
 
 -- | Create an info type from our options, adding help text and other nice
@@ -35,15 +36,20 @@ options = info
   (helper <*> pOptions)
   (  header "Query `duden.de' from the comfort of your command line."
   <> footer ("For options that take more than one argument, either wrap the \
-          \argument in quotes or separate with one of the following \
-          \characters (note that spaces between arguments are not \
-          \allowed):" ++ concatMap ((: []) .> (' ' :)) sepChars)
+             \argument in quotes or separate with one of the following \
+             \characters (note that spaces between arguments are not \
+             \allowed):" ++ concatMap ((: []) .> (' ' :)) sepChars)
   <> fullDesc
   )
 
 -- | Options we have and how to parse them.
 pOptions :: Parser Options
-pOptions = Options <$> pWord <*> pMaxShown <*> pSections <*> pOnlyUsage
+pOptions =
+  Options <$> pWord
+          <*> pMaxShown
+          <*> pSections
+          <*> pOnlyUsage
+          <*> pLookup
 
 -- | Word to look up.
 pWord :: Parser String
@@ -80,11 +86,21 @@ pSections = nub <$> option (pSection `splitWith` sepChars)
                    ]
           <* A.skipWhile (`notElem` sepChars)
 
+-- | Only show the 'Bedeutung' section.
 pOnlyUsage :: Parser Bool
 pOnlyUsage = switch
    ( long "usage"
   <> short 'u'
   <> help "Only show the 'Bedeutung' section."
+   )
+
+-- | Directly look up the word.
+pLookup :: Parser Bool
+pLookup = switch
+   ( long "lookup"
+  <> short 'l'
+  <> help "Directly look up the word (instead of searching for it and \
+          \looking up the entries of the search results)."
    )
 
 -- | Our separator characters.
