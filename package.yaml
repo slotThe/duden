@@ -19,6 +19,7 @@ default-extensions:
   - LambdaCase
   - InstanceSigs
   - OverloadedLabels
+  - RankNTypes
 
 ghc-options:
   -O2
