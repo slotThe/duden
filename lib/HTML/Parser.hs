@@ -76,12 +76,14 @@ getWordClass = betweenTupleVal (infoTag "wortart") .> notNull
 getUsage :: [Token] -> Maybe Text
 getUsage tags = notNull (betweenTupleVal (infoTag "gebrauch") tags)
 
--- | Get the meaning (Bedeutung) of a word.  This may be a single meaning or
--- multiple ones.
-getMeaning :: [Token] -> WordMeaning
+-- | Try to get the meaning (Bedeutung) of a word.  This may be a single meaning
+-- or multiple ones.
+getMeaning :: [Token] -> Maybe WordMeaning
 getMeaning tags
-  | T.null singleMeaning = Multiple multipleMeanings
-  | otherwise            = Single   singleMeaning
+  | T.null singleMeaning && null multipleMeanings = Nothing
+  | T.null singleMeaning  = multipleMeanings & Multiple .> Just
+  | null multipleMeanings = singleMeaning    & Single   .> Just
+  | otherwise = Nothing
  where
   singleMeaning :: Text
      = tags

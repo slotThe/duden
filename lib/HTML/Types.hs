@@ -31,7 +31,7 @@ data DudenWord = DudenWord
   { name      :: !Text
   , wordClass :: !(Maybe Text)
   , usage     :: !(Maybe Text)
-  , meaning   :: !WordMeaning
+  , meaning   :: !(Maybe WordMeaning)
   , synonyms  :: !(Maybe Text)
   }
 
@@ -66,12 +66,13 @@ ppWord dw@DudenWord{ name } =
 -- | Given a word entry, pretty print a single 'Section' (if present).
 ppSection :: DudenWord -> Section -> Maybe Text
 ppSection DudenWord{ meaning, usage, wordClass, synonyms } = \case
-  WordClass -> wordClass      <&> pp WordClass
-  Usage     -> usage          <&> pp Usage
-  Meaning   -> Just ppMeaning
-  Synonyms  -> synonyms       <&> pp Synonyms
+  WordClass -> wordClass <&> pp WordClass
+  Usage     -> usage     <&> pp Usage
+  Meaning   -> meaning   <&> pp Meaning . ppMeaning
+  Synonyms  -> synonyms  <&> pp Synonyms
  where
-  ppMeaning :: Text = pp Meaning $ case meaning of
+  ppMeaning :: WordMeaning -> Text
+  ppMeaning = \case
     Single   t  -> style 33 ": "   <> t
     Multiple ts -> style 33 "en: " <> foldl' (\str t -> "\n  - " <> t <> str) "" ts
 
