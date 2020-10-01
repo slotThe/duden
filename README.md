@@ -29,4 +29,4 @@ this code---I wrote the whole thing in a heavily covariant style.  This involves
 using `(.>) = (>>>)` instead of `(.)`, `(>>=)` instead of `(=<<)`, and `(<&>)`
 instead of `(<$>)` throughout.  I did at one point think about defining `(&)` to
 be right-associative and writing `f a b` as `b & a & f`, but I stopped myself
-before things got this far out of hand.
+before things got that far out of hand.
