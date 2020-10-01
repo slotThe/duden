@@ -1,0 +1,64 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: b7c9a4c3282a037271f82afb4559c1872a7384fe01eaecf07fd07a1a09d3f832
+
+name:                duden
+version:             0.1.0
+synopsis:            Query duden search results from within your terminal
+license:             AGPL-3
+license-file:        LICENSE
+author:              slotThe
+maintainer:          soliditsallgood@mailbox.org
+build-type:          Simple
+
+library
+  exposed-modules:
+      CLI.Parser
+      HTML.Parser
+      HTML.Types
+      HTML.Util
+      Prelude
+  other-modules:
+      Paths_duden
+  hs-source-dirs:
+      lib
+  default-extensions: OverloadedStrings BlockArguments ScopedTypeVariables NamedFieldPuns LambdaCase InstanceSigs
+  ghc-options: -O2 -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -Widentities -Wmissing-local-signatures -Wmissing-export-lists -Wmissed-specialisations
+  build-depends:
+      async
+    , attoparsec
+    , base-noprelude
+    , base-prelude
+    , bytestring
+    , html-parse
+    , http-conduit
+    , optparse-applicative
+    , optparse-applicative-util
+    , text
+  default-language: Haskell2010
+
+executable duden
+  main-is: Main.hs
+  other-modules:
+      Paths_duden
+  hs-source-dirs:
+      app
+  default-extensions: OverloadedStrings BlockArguments ScopedTypeVariables NamedFieldPuns LambdaCase InstanceSigs
+  ghc-options: -O2 -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -Widentities -Wmissing-local-signatures -Wmissing-export-lists -Wmissed-specialisations -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      async
+    , attoparsec
+    , base-noprelude
+    , base-prelude
+    , bytestring
+    , duden
+    , html-parse
+    , http-conduit
+    , optparse-applicative
+    , optparse-applicative-util
+    , text
+  default-language: Haskell2010
