@@ -79,11 +79,10 @@ getUsage tags = notNull (betweenTupleVal (infoTag "gebrauch") tags)
 -- | Try to get the meaning (Bedeutung) of a word.  This may be a single meaning
 -- or multiple ones.
 getMeaning :: [Token] -> Maybe WordMeaning
-getMeaning tags
-  | T.null singleMeaning && null multipleMeanings = Nothing
-  | T.null singleMeaning  = multipleMeanings & Multiple .> Just
-  | null multipleMeanings = singleMeaning    & Single   .> Just
-  | otherwise = Nothing
+getMeaning tags = case (T.null singleMeaning, null multipleMeanings) of
+  (True , False) -> multipleMeanings & Multiple .> Just
+  (False, True ) -> singleMeaning    & Single   .> Just
+  _              -> Nothing
  where
   singleMeaning :: Text
      = tags
@@ -97,9 +96,8 @@ getMeaning tags
     .> map (between meaningsText (TagClose "div") .> allContentText .> mconcat)
     .> reverse  -- Same order as on the website.
 
-  meaning, meanings :: Token
-  meaning  = divTag "bedeutung"
-  meanings = divTag "bedeutungen"
+  meaning      :: Token = divTag "bedeutung"
+  meanings     :: Token = divTag "bedeutungen"
   meaningsText :: Token = TagOpen "div" [Attr "class" "enumeration__text"]
 
 -- | Searching for a word.

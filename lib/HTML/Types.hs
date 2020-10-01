@@ -14,9 +14,11 @@ kind of information they want to see.
 We also define a pretty printing function to fit all of this together.
 -}
 module HTML.Types
-  ( -- * Types
+  ( -- * Scraping HTML into these types
     DudenWord(..)
   , WordMeaning(..)
+
+    -- * Showable things when pretty printing
   , Section(..)      -- instances: Eq, Show
 
     -- * Pretty printing
@@ -61,7 +63,8 @@ ppWord :: DudenWord -> [Section] -> Text
 ppWord dw@DudenWord{ name } =
   map (ppSection dw) .> catMaybes .> (wordName :) .> unlines
  where
-  wordName :: Text = style 1 name <> "\n" <> T.replicate 79 "-"  -- 1 = bold
+  wordName :: Text = style 1 name <> "\n" <> T.replicate 79 "-"
+                     -- 1 = bold
 
 -- | Given a word entry, pretty print a single 'Section' (if present).
 ppSection :: DudenWord -> Section -> Maybe Text
@@ -73,11 +76,18 @@ ppSection DudenWord{ meaning, usage, wordClass, synonyms } = \case
  where
   ppMeaning :: WordMeaning -> Text
   ppMeaning = \case
-    Single   t  -> style 33 ": "   <> t
-    Multiple ts -> style 33 "en: " <> foldl' (\str t -> "\n  - " <> t <> str) "" ts
+    Single   t  -> ": "   <> t
+    Multiple ts -> "en: " <> foldl' (\str t -> "\n  - " <> t <> str) "" ts
 
+  {- | Slap a 'Section' in front of some 'Text', then pretty print the first
+     word (i.e. everything until the first space character) in some nice amber
+     colour.
+  -}
   pp :: Section -> Text -> Text
-  pp s = (style 33 (tshow s) <>)
+  pp s = (tshow s <>) .> T.breakOn " " .> first (style 33) .> concatTuples
+   where
+    concatTuples :: Semigroup a => (a, a) -> a
+    concatTuples (a, b) = a <> b
 
 -- | See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_parameters
 style :: Int -> Text -> Text
