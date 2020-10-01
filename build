@@ -1,0 +1,13 @@
+#!/bin/sh
+#
+# Build duden
+#
+
+# The name of the executable produced by stack.
+EXE_NAME=duden
+
+# Do the build.
+stack build "$EXE_NAME"
+
+# Create a hard link at the requested destination, replacing any existing one.
+ln -f -T $(stack exec -- which "$EXE_NAME") "$1"

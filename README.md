@@ -22,7 +22,19 @@ duden -l intendieren
 For more information, as well as all available command line arguments, invoke
 the program with the `--help` flag.
 
+# Building
+
+Build with `stack build` and copy the resulting binaries to a suitable location.
+You can also use `stack install` to do the copying for you automatically (this
+will most likely move the executable to `~/.local/bin`).  There is also a small
+build script available, you may use it as follows:
+
+``` shell
+./build /path/to/dir/duden
+```
+
 # Misc (?)
+
 For no reason at all---though probably mostly in order to invoke fierce and
 undying hatred in my future self, as well as every single person to ever read
 this code---I wrote the whole thing in a heavily covariant style.  This involves
