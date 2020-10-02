@@ -42,10 +42,11 @@ module HTML.Util
 
 import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.List.NonEmpty         as NE
-import qualified Data.Text as T
+import qualified Data.Text                  as T
 
 import Network.HTTP.Conduit (Manager, Request, httpLbs, parseRequest, responseBody)
 import Text.HTML.Parser (Attr(Attr), AttrName, AttrValue, Token(Comment, ContentText, TagClose, TagOpen), parseTokens)
+
 
 -- | Make a request and parse the response body into 'Token's.
 getTags :: Manager -> Request -> IO [Token]
@@ -100,8 +101,8 @@ betweenTupleVal tag tags
   <&> between (TagOpen "dd" [Attr "class" "tuple__val"]) (TagClose "dd")
    .> toHeadContentText
 
--- | Drop an HTML header (i.e. the header tags and everything inbetween) from a
--- list of 'Token's.
+-- | Drop an HTML header (i.e. the header tags and everything in between), as
+-- well as everything before it, from a list of 'Token's.
 dropHeader :: Text -> [Token] -> [Token]
 dropHeader hname = dropWhile (~/= TagOpen "header" [Attr "class" hname])
                 .> dropWhile (~/= TagClose "header")
@@ -169,4 +170,4 @@ infixl 9 ~==
 infixl 9 ~/=
 -- | Negation of '(~==)'.
 (~/=) :: Token -> Token -> Bool
-(~/=) = (not .) . (~==)
+(~/=) a b = not (a ~== b)

@@ -26,7 +26,7 @@ data Options = Options
   , maxShown   :: !Int        -- ^ Max hits to show
   , sections   :: ![Section]  -- ^ What to show
   , onlyUsage  :: !Bool       -- ^ Only show the usage field
-  , onlyLookup :: !Bool       -- ^ Look up this word verbatim
+  , onlyLookup :: !Bool       -- ^ Look up this word directly
   }
 
 -- | Create an info type from our options, adding help text and other nice

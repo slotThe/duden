@@ -1,9 +1,11 @@
 name:                duden
 version:             0.1.0
+homepage:            https://gitlab.com/slotThe/duden
 synopsis:            Query duden search results from within your terminal
 license:             AGPL-3
 author:              slotThe
-maintainer:          soliditsallgood@mailbox.org
+maintainer:          slotThe <soliditsallgood@mailbox.org>
+copyright:           2020  slotThe
 
 default-extensions:
   - OverloadedStrings

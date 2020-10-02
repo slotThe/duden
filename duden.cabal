@@ -4,15 +4,17 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b7c9a4c3282a037271f82afb4559c1872a7384fe01eaecf07fd07a1a09d3f832
+-- hash: 085cc4f4c65fa5d86f33d925c8bdf89ea893c85be6401a7bc1fbef4a83139a34
 
 name:                duden
 version:             0.1.0
 synopsis:            Query duden search results from within your terminal
+homepage:            https://gitlab.com/slotThe/duden
 license:             AGPL-3
 license-file:        LICENSE
 author:              slotThe
-maintainer:          soliditsallgood@mailbox.org
+maintainer:          slotThe <soliditsallgood@mailbox.org>
+copyright:           2020  slotThe
 build-type:          Simple
 
 library
