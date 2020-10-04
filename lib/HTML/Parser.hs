@@ -88,7 +88,8 @@ getMeaning tags = case (T.null singleMeaning, null multipleMeanings) of
      = tags
      & section (~== meaning)
     .> between (TagOpen "p" []) (TagClose "p")
-    .> toHeadContentText
+    .> allContentText
+    .> mconcat
 
   multipleMeanings :: [Text]
      = tags
