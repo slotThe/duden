@@ -17,12 +17,13 @@ module HTML.Parser
   ) where
 
 import HTML.Types (DudenWord(DudenWord, meaning, name, synonyms, usage, wordClass), Section, WordMeaning(Multiple, Single), ppWord)
-import HTML.Util (betweenTupleVal, (~==), allContentText, between, divTag, dropHeader, fromContentText, getTags, infoTag, isContentText, makeRequestWith, notNull, section, sections, toHeadContentText)
+import HTML.Util (betweenTupleVal, divTag, getTags, infoTag, makeRequestWith, notNull)
 
 import qualified Data.Text as T
 
 import Network.HTTP.Conduit (Manager, parseRequest)
 import Text.HTML.Parser (Attr(Attr), Token(TagClose, TagOpen))
+import Text.HTML.Parser.Utils ((~==), allContentText, between, dropHeader, fromContentText, isContentText, section, sections)
 
 
 -- | Search for the word on the Duden website.
@@ -63,7 +64,7 @@ lookupWord man sns word =
 getSynonyms :: [Token] -> Maybe Text
 getSynonyms
    = section (~== divTag "synonyme")
-  .> dropHeader "division__header"
+  .> dropHeader [Attr "class" "division__header"]
   .> between (TagOpen "ul" []) (TagClose "ul")
   .> allContentText
   .> notNull

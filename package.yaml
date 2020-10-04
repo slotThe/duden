@@ -39,6 +39,7 @@ dependencies:
   - bytestring
   - attoparsec
   - html-parse
+  - html-parse-utils
   - optparse-applicative
   - optparse-applicative-util
 
