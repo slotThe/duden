@@ -4,8 +4,8 @@ packages:
   - .
 
 extra-deps:
-  - git: https://gitlab.com/slotThe/optparse-applicative-util.git
-    commit: eec1453fe8ad33f9f6706bb73e43ef34bf70acb1
   - html-parse-0.2.0.2@sha256:268c6c3a723aae77ff799bf501d60a91e60536facab3ae70df7a74cea75e29c3,3898
+  - git: https://gitlab.com/slotThe/optparse-applicative-util.git
+    commit: 9cfa65cd38e1c61b3d449df14b380a130add9570
   - git: https://gitlab.com/slotThe/html-parse-utils.git
     commit: 7401e85ebe4547a9a727bf659cae594d0080ae63
