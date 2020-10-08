@@ -17,7 +17,7 @@ import HTML.Types (Section(Meaning, Synonyms, Usage, WordClass))
 import qualified Data.Attoparsec.Text as A
 
 import Options.Applicative (Parser, ParserInfo, argument, auto, footer, fullDesc, header, help, helper, info, long, metavar, option, short, str, switch, value)
-import Options.Applicative.Util (AttoParser, anyOf, splitWith)
+import Options.Applicative.Util (AttoParser, anyOf, showSepChars, splitWith)
 
 
 -- | Options the user may give to the tool via the command line.
@@ -38,7 +38,7 @@ options = info
   <> footer ("For options that take more than one argument, either wrap the \
              \argument in quotes or separate with one of the following \
              \characters (note that spaces between arguments are not \
-             \allowed):" ++ concatMap ((: []) .> (' ' :)) sepChars)
+             \allowed):" ++ showSepChars sepChars)
   <> fullDesc
   )
 
@@ -73,7 +73,7 @@ pSections = nub <$> option (pSection `splitWith` sepChars)
   <> short 's'
   <> metavar "S"
   <> help "Sections to print (in order) in the final output.  \
-          \Default: WordClass,Usage,Meaning,Synonyms"
+          \Default: show everything (WordClass,Usage,Meaning,Synonyms)."
   <> value [WordClass, Usage, Meaning, Synonyms]
    )
  where
