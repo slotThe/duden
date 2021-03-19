@@ -1,13 +1,10 @@
 # duden
 
-This program allows you to search words on [Duden's
-website](https://www.duden.de/) from your command line!  For example, if one
-wanted to search for "intendieren", all one had to do is to invoke the program
-without any arguments:
+This program allows you to search words on [Duden's website] from your
+command line!  For example, if one wanted to search for "intendieren",
+all one had to do is to invoke the program without any arguments:
 
-``` shell
-duden intendieren
-```
+![](https://user-images.githubusercontent.com/50166980/111788191-14dc1c80-88c0-11eb-96ec-c9c69e869f94.png)
 
 This will, by default, show the sections `Wortart, Gebrauch, Bedeutung,
 Synonyme` of the first two search results.
@@ -15,12 +12,12 @@ Synonyme` of the first two search results.
 Words can also be directly looked up (instead of searched for) with the `-l`
 flag:
 
-``` shell
-duden -l intendieren
-```
+![](https://user-images.githubusercontent.com/50166980/111794766-da29b280-88c6-11eb-9aec-80bb26bc08d3.png)
 
 For more information, as well as all available command line arguments, invoke
 the program with the `--help` flag.
+
+[Duden's website]: https://www.duden.de/
 
 # Building
 
