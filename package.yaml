@@ -31,7 +31,8 @@ library:
   source-dirs: lib
 
 dependencies:
-  - base-noprelude
+  - name: base
+    mixin: hiding (Prelude)
   - base-prelude
   - http-conduit
   - async

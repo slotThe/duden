@@ -1,10 +1,10 @@
-cabal-version: 1.12
+cabal-version: 2.0
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4c1196848383338cb4c980cd9e8a98aa5c1b5d6d24c53279717618cb4645e888
+-- hash: dab87970bc30a1c301d67a9c0ed82a47377248d59ce2e281fdc1841ba6f662e6
 
 name:                duden
 version:             0.1.0
@@ -28,12 +28,18 @@ library
       Paths_duden
   hs-source-dirs:
       lib
-  default-extensions: OverloadedStrings BlockArguments ScopedTypeVariables NamedFieldPuns LambdaCase InstanceSigs
+  default-extensions:
+      OverloadedStrings
+      BlockArguments
+      ScopedTypeVariables
+      NamedFieldPuns
+      LambdaCase
+      InstanceSigs
   ghc-options: -O2 -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -Widentities -Wmissing-local-signatures -Wmissing-export-lists -Wmissed-specialisations
   build-depends:
       async
     , attoparsec
-    , base-noprelude
+    , base
     , base-prelude
     , bytestring
     , html-parse
@@ -42,6 +48,8 @@ library
     , optparse-applicative
     , optparse-applicative-util
     , text
+  mixins:
+      base hiding (Prelude)
   default-language: Haskell2010
 
 executable duden
@@ -50,12 +58,18 @@ executable duden
       Paths_duden
   hs-source-dirs:
       app
-  default-extensions: OverloadedStrings BlockArguments ScopedTypeVariables NamedFieldPuns LambdaCase InstanceSigs
+  default-extensions:
+      OverloadedStrings
+      BlockArguments
+      ScopedTypeVariables
+      NamedFieldPuns
+      LambdaCase
+      InstanceSigs
   ghc-options: -O2 -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints -Widentities -Wmissing-local-signatures -Wmissing-export-lists -Wmissed-specialisations -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       async
     , attoparsec
-    , base-noprelude
+    , base
     , base-prelude
     , bytestring
     , duden
@@ -65,4 +79,6 @@ executable duden
     , optparse-applicative
     , optparse-applicative-util
     , text
+  mixins:
+      base hiding (Prelude)
   default-language: Haskell2010
