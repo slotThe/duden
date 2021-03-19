@@ -12,7 +12,7 @@ module CLI.Parser
   , options      -- :: ParserInfo Options
   ) where
 
-import HTML.Types (Section(Meaning, Synonyms, Usage, WordClass))
+import HTML.Types (Section (Meaning, Synonyms, Usage, WordClass))
 
 import qualified Data.Attoparsec.Text as A
 

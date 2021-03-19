@@ -1,7 +1,7 @@
 {- |
    Module      : HTML.Parser
    Description : Parsing HTML
-   Copyright   : (c) slotThe, 2020
+   Copyright   : (c) slotThe, 2020 2021
    License     : AGPL
    Maintainer  : slotThe <soliditsallgood@mailbox.org>
    Stability   : experimental
@@ -16,14 +16,14 @@ module HTML.Parser
   , lookupWord     -- :: Manager -> [Section] -> String -> IO Text
   ) where
 
-import HTML.Types (DudenWord(DudenWord, meaning, name, synonyms, usage, wordClass), Section, WordMeaning(Multiple, Single), ppWord)
+import HTML.Types (DudenWord (DudenWord, meaning, name, synonyms, usage, wordClass), Section, WordMeaning (Multiple, MultipleSub, Single), ppWord)
 import HTML.Util (betweenTupleVal, divTag, getTags, infoTag, makeRequestWith, notNull)
 
 import qualified Data.Text as T
 
 import Network.HTTP.Conduit (Manager, parseRequest)
-import Text.HTML.Parser (Attr(Attr), Token(TagClose, TagOpen))
-import Text.HTML.Parser.Utils ((~==), allContentText, between, dropHeader, fromContentText, isContentText, section, sections)
+import Text.HTML.Parser (Attr (Attr), Token (TagClose, TagOpen))
+import Text.HTML.Parser.Utils (allContentText, between, dropHeader, fromContentText, isContentText, section, sections, (~==))
 
 
 -- | Search for the word on the Duden website.
@@ -80,11 +80,17 @@ getUsage tags = notNull (betweenTupleVal (infoTag "gebrauch") tags)
 -- | Try to get the meaning (Bedeutung) of a word.  This may be a single meaning
 -- or multiple ones.
 getMeaning :: [Token] -> Maybe WordMeaning
-getMeaning tags = case (T.null singleMeaning, null multipleMeanings) of
-  (True , False) -> multipleMeanings & Multiple .> Just
-  (False, True ) -> singleMeaning    & Single   .> Just
-  _              -> Nothing
+getMeaning tags
+  | notEmpty isMultipleSub        = multipleMeaningsSub & MultipleSub .> Just
+  | notEmpty multipleMeanings     = multipleMeanings    & Multiple    .> Just
+  | singleMeaning & T.null .> not = singleMeaning       & Single      .> Just
+  | otherwise                     = Nothing
  where
+  isMultipleSub :: [[Token]] = tags & sections (~== enumSubItem)
+
+  notEmpty :: [a] -> Bool
+  notEmpty = null .> not
+
   singleMeaning :: Text
      = tags
      & section (~== meaning)
@@ -95,12 +101,24 @@ getMeaning tags = case (T.null singleMeaning, null multipleMeanings) of
   multipleMeanings :: [Text]
      = tags
      & section (~== meanings) .> sections (~== meaningsText)
-    .> map (between meaningsText (TagClose "div") .> allContentText .> mconcat)
-    .> reverse  -- Same order as on the website.
+    .> map getText
+
+  multipleMeaningsSub :: [[Text]]
+     = tags
+     & section (~== meanings)
+    .> sections (~== enumItem)
+    .> map (between enumItem (TagClose "ol")
+            .> sections (~== meaningsText)
+            .> map getText)
+
+  getText :: [Token] -> Text
+    = between meaningsText (TagClose "div") .> allContentText .> mconcat
 
   meaning      :: Token = divTag "bedeutung"
   meanings     :: Token = divTag "bedeutungen"
-  meaningsText :: Token = TagOpen "div" [Attr "class" "enumeration__text"]
+  meaningsText :: Token = TagOpen "div" [Attr "class" "enumeration__text"    ]
+  enumItem     :: Token = TagOpen "li"  [Attr "class" "enumeration__item"    ]
+  enumSubItem  :: Token = TagOpen "li"  [Attr "class" "enumeration__sub-item"]
 
 -- | Searching for a word.
 wordSearch :: String -> String

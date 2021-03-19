@@ -39,8 +39,9 @@ data DudenWord = DudenWord
 
 -- | A word may have multiple meanings.
 data WordMeaning
-  = Single   !Text
-  | Multiple ![Text]
+  = Single      !Text
+  | Multiple    ![Text]
+  | MultipleSub ![[Text]] -- TODO
 
 -- | Sections to show in the final output.
 data Section
@@ -76,8 +77,28 @@ ppSection DudenWord{ meaning, usage, wordClass, synonyms } = \case
  where
   ppMeaning :: WordMeaning -> Text
   ppMeaning = \case
-    Single   t  -> ": "   <> t
-    Multiple ts -> "en: " <> foldl' (\str t -> "\n  - " <> t <> str) "" ts
+    Single      t  -> ": "   <> t
+    Multiple    ts -> "en: " <> enumerate ts
+    MultipleSub ts ->
+      "en: " <> enumerate (ts <&> ppMultiple T.singleton ") " ['a'..] .> align 6)
+
+  -- | Pair a list with its indices and format everything in a nice way.
+  enumerate :: [Text] -> Text
+    = ppMultiple tshow ".  " [1 :: Int ..] .> foldMap' ("\n  " <>)
+
+  -- | Pretty-print multiple meanings.
+  ppMultiple :: (a -> Text) -> Text -> [a] -> [Text] -> [Text]
+  ppMultiple showN str = zipWith (\n line -> showN n <> str <> line)
+
+  -- | Align a sub-text; this means aligning everything but the first
+  -- item, as it'll be on the same line as its parent.
+  align :: Int -> [Text] -> Text
+  align _ []       = ""
+  align n (x : xs) = x <> go xs
+   where
+    go :: [Text] -> Text = \case
+      []       -> ""
+      (y : ys) -> "\n" <> T.replicate n " " <> y <> go ys
 
   {- | Slap a 'Section' in front of some 'Text', then pretty print the first
      word (i.e. everything until the first space character) in some nice amber

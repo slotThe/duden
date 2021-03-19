@@ -11,9 +11,9 @@ module Main
   ( main  -- :: IO ()
   ) where
 
-import CLI.Parser (Options(Options, maxShown, onlyLookup, onlyUsage, sections, word), options)
-import HTML.Parser (searchForWord, lookupWord)
-import HTML.Types (Section(Usage))
+import CLI.Parser (Options (Options, maxShown, onlyLookup, onlyUsage, sections, word), options)
+import HTML.Parser (lookupWord, searchForWord)
+import HTML.Types (Section (Usage))
 
 import Control.Concurrent.Async (mapConcurrently)
 import Network.HTTP.Conduit (newManager, tlsManagerSettings)
