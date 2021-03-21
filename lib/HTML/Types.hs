@@ -80,7 +80,11 @@ ppSection DudenWord{ meaning, usage, wordClass, synonyms } = \case
     Single      t  -> ": "   <> t
     Multiple    ts -> "en: " <> enumerate ts
     MultipleSub ts ->
-      "en: " <> enumerate (ts <&> ppMultiple T.singleton ") " ['a'..] .> align 6)
+      (ts <&> \t ->
+              (if length t <= 1 then t else ppMultiple T.singleton ") " ['a'..] t)
+              & align 6)
+        & enumerate
+        & ("en: " <>)
 
   -- | Pair a list with its indices and format everything in a nice way.
   enumerate :: [Text] -> Text

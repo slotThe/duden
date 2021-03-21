@@ -107,7 +107,7 @@ getMeaning tags
      = tags
      & section (~== meanings)
     .> sections (~== enumItem)
-    .> map (between enumItem (TagClose "ol")
+    .> map (between enumItem enumItem
             .> sections (~== meaningsText)
             .> map getText)
 
