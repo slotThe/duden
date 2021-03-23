@@ -16,11 +16,11 @@ module HTML.Parser
   , lookupWord     -- :: Manager -> [Section] -> String -> IO Text
   ) where
 
-import HTML.Types (DudenWord (DudenWord, meaning, name, synonyms, usage, wordClass), Section, WordMeaning (Multiple, MultipleSub, Single), ppWord)
-import HTML.Util (betweenTupleVal, divTag, getTags, infoTag, makeRequestWith, notNull)
-
 import qualified Data.Text as T
 
+import Data.Map (Map)
+import HTML.Types (DudenWord (DudenWord, meaning, name, synonyms, usage, wordClass), Section, WordMeaning (Multiple, Single), ppWord)
+import HTML.Util (betweenTupleVal, divTag, getTags, infoTag, makeRequestWith, notNull)
 import Network.HTTP.Conduit (Manager, parseRequest)
 import Text.HTML.Parser (Attr (Attr), Token (TagClose, TagOpen))
 import Text.HTML.Parser.Utils (allContentText, between, dropHeader, fromContentText, isContentText, section, sections, (~==))
@@ -81,16 +81,10 @@ getUsage tags = notNull (betweenTupleVal (infoTag "gebrauch") tags)
 -- or multiple ones.
 getMeaning :: [Token] -> Maybe WordMeaning
 getMeaning tags
-  | notEmpty isMultipleSub        = multipleMeaningsSub & MultipleSub .> Just
-  | notEmpty multipleMeanings     = multipleMeanings    & Multiple    .> Just
-  | singleMeaning & T.null .> not = singleMeaning       & Single      .> Just
+  | notEmpty multiMeanings        = multipleMeanings & Multiple .> Just
+  | singleMeaning & T.null .> not = singleMeaning    & Single   .> Just
   | otherwise                     = Nothing
  where
-  isMultipleSub :: [[Token]] = tags & sections (~== enumSubItem)
-
-  notEmpty :: [a] -> Bool
-  notEmpty = null .> not
-
   singleMeaning :: Text
      = tags
      & section (~== meaning)
@@ -98,27 +92,31 @@ getMeaning tags
     .> allContentText
     .> mconcat
 
-  multipleMeanings :: [Text]
-     = tags
-     & section (~== meanings) .> sections (~== meaningsText)
-    .> map getText
-
-  multipleMeaningsSub :: [[Text]]
+  multipleMeanings :: Map Int [Text]
      = tags
      & section (~== meanings)
     .> sections (~== enumItem)
     .> map (between enumItem enumItem
             .> sections (~== meaningsText)
             .> map getText)
+    .> zip [1 ..]
+    .> fromList
+
+  multiMeanings :: [Text]
+     = tags
+     & section (~== meanings) .> sections (~== meaningsText)
+    .> map getText
 
   getText :: [Token] -> Text
     = between meaningsText (TagClose "div") .> allContentText .> mconcat
 
+  notEmpty :: [a] -> Bool
+  notEmpty = null .> not
+
   meaning      :: Token = divTag "bedeutung"
   meanings     :: Token = divTag "bedeutungen"
-  meaningsText :: Token = TagOpen "div" [Attr "class" "enumeration__text"    ]
-  enumItem     :: Token = TagOpen "li"  [Attr "class" "enumeration__item"    ]
-  enumSubItem  :: Token = TagOpen "li"  [Attr "class" "enumeration__sub-item"]
+  meaningsText :: Token = TagOpen "div" [Attr "class" "enumeration__text"]
+  enumItem     :: Token = TagOpen "li"  [Attr "class" "enumeration__item"]
 
 -- | Searching for a word.
 wordSearch :: String -> String

@@ -34,6 +34,7 @@ dependencies:
   - name: base
     mixin: hiding (Prelude)
   - base-prelude
+  - containers
   - http-conduit
   - async
   - text

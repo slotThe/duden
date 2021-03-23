@@ -27,6 +27,9 @@ module HTML.Types
 
 import qualified Data.Text as T
 
+import Data.Map.Strict (Map)
+import qualified Data.Map.Strict as Map
+
 
 -- | Entry for a single word where not all sections have to be present.
 data DudenWord = DudenWord
@@ -39,9 +42,8 @@ data DudenWord = DudenWord
 
 -- | A word may have multiple meanings.
 data WordMeaning
-  = Single      !Text
-  | Multiple    ![Text]
-  | MultipleSub ![[Text]] -- TODO
+  = Single   !Text
+  | Multiple !(Map Int [Text])
 
 -- | Sections to show in the final output.
 data Section
@@ -77,22 +79,21 @@ ppSection DudenWord{ meaning, usage, wordClass, synonyms } = \case
  where
   ppMeaning :: WordMeaning -> Text
   ppMeaning = \case
-    Single      t  -> ": "   <> t
-    Multiple    ts -> "en: " <> enumerate ts
-    MultipleSub ts ->
-      (ts <&> \t ->
-              (if length t <= 1 then t else ppMultiple T.singleton ") " ['a'..] t)
-              & align 6)
-        & enumerate
-        & ("en: " <>)
+    Single   t  -> ": " <> t
+    Multiple ts -> (ts <&> \t -> ppMultiple T.singleton ") " ['a' ..] t
+                               & align 6)
+                 & enumerate
+                 & ("en: " <>)
 
   -- | Pair a list with its indices and format everything in a nice way.
-  enumerate :: [Text] -> Text
-    = ppMultiple tshow ".  " [1 :: Int ..] .> foldMap' ("\n  " <>)
+  enumerate :: Map Int Text -> Text
+    = Map.foldrWithKey (\k v l -> mconcat ["\n  ", tshow k, ".  ", v, l]) ""
 
   -- | Pretty-print multiple meanings.
   ppMultiple :: (a -> Text) -> Text -> [a] -> [Text] -> [Text]
-  ppMultiple showN str = zipWith (\n line -> showN n <> str <> line)
+  ppMultiple showN str ixs lst
+    | length lst <= 1 = lst
+    | otherwise       = zipWith (\n line -> showN n <> str <> line) ixs lst
 
   -- | Align a sub-text; this means aligning everything but the first
   -- item, as it'll be on the same line as its parent.
