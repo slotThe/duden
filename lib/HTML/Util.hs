@@ -26,9 +26,10 @@ module HTML.Util
   , wrapWith           -- :: Text -> Int -> Int -> [Text] -> Text
   ) where
 
+import qualified Data.ByteString.Char8      as BS
 import qualified Data.ByteString.Lazy.Char8 as BL
-import qualified Data.Text                  as T
 
+import Data.Text.Encoding (encodeUtf8)
 import Network.HTTP.Conduit (Manager, Request, httpLbs, parseRequest, responseBody)
 import Text.HTML.Parser (Attr (Attr), Token (TagClose, TagOpen), parseTokens)
 import Text.HTML.Parser.Utils (between, sections, toHeadContentText, (~==))
@@ -87,36 +88,36 @@ infoTag t = TagOpen "a" [ Attr "target" "_blank"
 
 -- | Wrap text at @N@ columns.
 wrapWith
-    :: Text    -- ^ How to concatenate chunks, i.e. the separator
-    -> Int     -- ^ Left alignment
-    -> Int     -- ^ Max line length (wrap)
-    -> [Text]  -- ^ Text as chunks that have to stay together
-    -> Text    -- ^ Text with line breaks
+  :: Text    -- ^ How to concatenate chunks, i.e. the separator
+  -> Int     -- ^ Left alignment
+  -> Int     -- ^ Max line length (wrap)
+  -> [Text]  -- ^ Text as chunks that have to stay together
+  -> Text    -- ^ Text with line breaks
 wrapWith separator al wrapAt chunks
-    | wrapAt == 0 = mconcat $ intersperse separator chunks
-    | otherwise   = go "" separator al chunks
-  where
-    go :: Text    -- ^ Already processed part of the text
-       -> Text    -- ^ Separator to put between chunks
-       -> Int     -- ^ Counter of the current line length
-       -> [Text]  -- ^ Text as chunks that have to stay together
-       -> Text
-    go !done _   !_   []        = done
-    go !line sep !acc xs@(c:cs)
-          -- If the chunk itself is bigger than our threshold then break
-          -- it anyways, aggressively.
-        | cLen    >= wrapAt = go (go line " " acc (T.words c)) sep newLen cs
-        | combLen >= wrapAt = go (align line)                  sep al     xs
-        | otherwise         = go (line <> c <> end)            sep newLen cs
-      where
-        cLen    :: Int = T.length c
-        combLen :: Int = acc + cLen              -- Length including the next word
-        newLen  :: Int = combLen + T.length end  -- Take separator length into account
+  | wrapAt == 0 = mconcat $ intersperse separator chunks
+  | otherwise   = decodeUtf8 $ go "" (encodeUtf8 separator) al (map encodeUtf8 chunks)
+ where
+  go :: ByteString  -- ^ Already processed part of the text
+     -> ByteString  -- ^ Separator to put between chunks
+     -> Int         -- ^ Counter of the current line length
+     -> [ByteString]  -- ^ Text as chunks that have to stay together
+     -> ByteString
+  go !done _   !_   []        = done
+  go !line sep !acc xs@(c:cs)
+      -- If the chunk itself is bigger than our threshold then break
+      -- it anyways, aggressively.
+    | cLen    >= wrapAt = go (go line " " acc (BS.words c)) sep newLen cs
+    | combLen >= wrapAt = go (align line)                   sep al     xs
+    | otherwise         = go (mconcat [line, c, end])       sep newLen cs
+   where
+    cLen    :: Int = BS.length c
+    combLen :: Int = acc + cLen               -- Length including the next word
+    newLen  :: Int = combLen + BS.length end  -- Take separator length into account
 
-        -- | Nicely left-align the text after a line-break.  We like
-        -- pretty things.
-        align :: Text -> Text
-        align = (<> "\n" <> T.replicate al " ")
+    -- | Nicely left-align the text after a line-break.  We like
+    -- pretty things.
+    align :: ByteString -> ByteString
+    align = (<> "\n" <> BS.replicate al ' ')
 
-        end :: Text
-        end = if null cs then "" else sep
+    end :: ByteString
+    end = if null cs then "" else sep
