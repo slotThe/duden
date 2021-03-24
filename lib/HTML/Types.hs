@@ -68,8 +68,11 @@ ppWord :: DudenWord -> Int -> [Section] -> Text
 ppWord dw@DudenWord{ name } wrap =
   map (ppSection dw wrap) .> catMaybes .> (wordName :) .> unlines
  where
-  wordName :: Text = style 1 name <> "\n" <> T.replicate 79 "-"
-                     -- 1 = bold
+  wordName :: Text = mconcat
+    [ style 1 name  -- 1 = bold
+    , "\n"
+    , T.replicate (if wrap == 0 then 79 else wrap) "-"
+    ]
 
 -- | Given a word entry, pretty print a single 'Section' (if present).
 ppSection :: DudenWord -> Int -> Section -> Maybe Text
