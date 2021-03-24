@@ -1,7 +1,7 @@
 {- |
    Module      : CLI.Parser
    Description : CLI for the program
-   Copyright   : (c) slotThe, 2020
+   Copyright   : (c) slotThe  2020 2021
    License     : AGPL
    Maintainer  : slotThe <soliditsallgood@mailbox.org>
    Stability   : experimental
@@ -27,6 +27,7 @@ data Options = Options
   , sections   :: ![Section]  -- ^ What to show
   , onlyUsage  :: !Bool       -- ^ Only show the usage field
   , onlyLookup :: !Bool       -- ^ Look up this word directly
+  , wrap       :: !Int        -- ^ When to wrap the text
   }
 
 -- | Create an info type from our options, adding help text and other nice
@@ -50,6 +51,7 @@ pOptions =
           <*> pSections
           <*> pOnlyUsage
           <*> pLookup
+          <*> pWrap
 
 -- | Word to look up.
 pWord :: Parser String
@@ -101,6 +103,17 @@ pLookup = switch
   <> short 'l'
   <> help "Directly look up the word (instead of searching for it and \
           \looking up the entries of the search results)."
+   )
+
+-- | When to wrap the text in columns.
+pWrap :: Parser Int
+pWrap = option auto
+   ( short 'w'
+  <> long "wrap"
+  <> metavar "N"
+  <> help "Wrap text at N columns.  N has to be a natural number; a \
+          \value of 0 indicates no line wrapping.  Default: 0"
+  <> value 0
    )
 
 -- | Our separator characters.

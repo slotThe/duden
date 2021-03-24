@@ -1,7 +1,7 @@
 {- |
    Module      : Main
    Description : Entry point for the program
-   Copyright   : (c) slotThe, 2020
+   Copyright   : (c) slotThe  2020 2021
    License     : AGPL
    Maintainer  : slotThe <soliditsallgood@mailbox.org>
    Stability   : experimental
@@ -11,7 +11,7 @@ module Main
   ( main  -- :: IO ()
   ) where
 
-import CLI.Parser (Options (Options, maxShown, onlyLookup, onlyUsage, sections, word), options)
+import CLI.Parser (Options (Options, maxShown, onlyLookup, onlyUsage, sections, word, wrap), options)
 import HTML.Parser (lookupWord, searchForWord)
 import HTML.Types (Section (Usage))
 
@@ -22,19 +22,19 @@ import Options.Applicative (execParser)
 
 main :: IO ()
 main = do
-  Options{ maxShown, word, sections, onlyUsage, onlyLookup } <- execParser options
+  Options{ maxShown, word, sections, onlyUsage, onlyLookup, wrap } <- execParser options
   man <- newManager tlsManagerSettings
 
   -- Sections to print.
-  let sns = if onlyUsage   then [Usage] else sections
+  let sns = if onlyUsage then [Usage] else sections
 
   -- Whether to search for the word or look it up directly.
   if   onlyLookup
-  then putTextLn =<< lookupWord man sns word
+  then putTextLn =<< lookupWord man sns wrap word
   else do
     ws <- searchForWord man word
       >>= (if maxShown == 0 then id else take maxShown)
-       .> mapConcurrently (lookupWord man sns)
+       .> mapConcurrently (lookupWord man sns wrap)
 
     -- Output words in the order they appear on the website.
     traverse_ putTextLn ws

@@ -1,7 +1,7 @@
 {- |
    Module      : HTML.Parser
    Description : Parsing HTML
-   Copyright   : (c) slotThe, 2020 2021
+   Copyright   : (c) slotThe  2020 2021
    License     : AGPL
    Maintainer  : slotThe <soliditsallgood@mailbox.org>
    Stability   : experimental
@@ -18,7 +18,7 @@ module HTML.Parser
 
 import qualified Data.Text as T
 
-import Data.Map (Map)
+import Data.Map.Strict (Map)
 import HTML.Types (DudenWord (DudenWord, meaning, name, synonyms, usage, wordClass), Section, WordMeaning (Multiple, Single), ppWord)
 import HTML.Util (betweenTupleVal, divTag, getTags, infoTag, makeRequestWith, notNull)
 import Network.HTTP.Conduit (Manager, parseRequest)
@@ -47,8 +47,8 @@ searchForWord man word =
        .> T.filter (/= '\173')  -- "-"
 
 -- | Look up the entry for a word on the Duden website.
-lookupWord :: Manager -> [Section] -> String -> IO Text
-lookupWord man sns word =
+lookupWord :: Manager -> [Section] -> Int -> String -> IO Text
+lookupWord man sns wrap word =
   catch do tags <- makeRequestWith wordPage word >>= getTags man
            ppWord DudenWord{ name      = fromString   word
                            , meaning   = getMeaning   tags
@@ -56,6 +56,7 @@ lookupWord man sns word =
                            , wordClass = getWordClass tags
                            , synonyms  = getSynonyms  tags
                            }
+                  wrap
                   sns
             & pure
         \(e :: SomeException) -> e & tshow .> pure

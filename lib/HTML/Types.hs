@@ -1,7 +1,7 @@
 {- |
    Module      : HTML.Types
    Description : Types for the parts of a Duden entry that interest us
-   Copyright   : (c) slotThe, 2020
+   Copyright   : (c) slotThe  2020 2021
    License     : AGPL
    Maintainer  : slotThe <soliditsallgood@mailbox.org>
    Stability   : experimental
@@ -24,6 +24,8 @@ module HTML.Types
     -- * Pretty printing
   , ppWord           -- :: DudenWord -> [Section] -> Text
   ) where
+
+import HTML.Util (wrapWith)
 
 import qualified Data.Text as T
 
@@ -62,21 +64,26 @@ instance Show Section where
     Synonyms  -> "Synonyme: "
 
 -- | Pretty print the given 'Section's of a single word entry.
-ppWord :: DudenWord -> [Section] -> Text
-ppWord dw@DudenWord{ name } =
-  map (ppSection dw) .> catMaybes .> (wordName :) .> unlines
+ppWord :: DudenWord -> Int -> [Section] -> Text
+ppWord dw@DudenWord{ name } wrap =
+  map (ppSection dw wrap) .> catMaybes .> (wordName :) .> unlines
  where
   wordName :: Text = style 1 name <> "\n" <> T.replicate 79 "-"
                      -- 1 = bold
 
 -- | Given a word entry, pretty print a single 'Section' (if present).
-ppSection :: DudenWord -> Section -> Maybe Text
-ppSection DudenWord{ meaning, usage, wordClass, synonyms } = \case
+ppSection :: DudenWord -> Int -> Section -> Maybe Text
+ppSection DudenWord{ meaning, usage, wordClass, synonyms } wrap = \case
   WordClass -> wordClass <&> pp WordClass
   Usage     -> usage     <&> pp Usage
   Meaning   -> meaning   <&> pp Meaning . ppMeaning
-  Synonyms  -> synonyms  <&> pp Synonyms
+  Synonyms  -> synonyms  <&> wrapSynonyms .> pp Synonyms
  where
+  wrapSynonyms :: Text -> Text
+     = T.splitOn ","
+    .> map T.strip
+    .> wrapWith ", " (T.length (tshow Synonyms)) wrap
+
   ppMeaning :: WordMeaning -> Text
   ppMeaning = \case
     Single   t  -> ": " <> t
@@ -98,12 +105,19 @@ ppSection DudenWord{ meaning, usage, wordClass, synonyms } = \case
   -- | Align a sub-text; this means aligning everything but the first
   -- item, as it'll be on the same line as its parent.
   align :: Int -> [Text] -> Text
-  align _ []       = ""
-  align n (x : xs) = x <> go xs
+  align n = \case
+    []       -> ""
+    [x]      -> wrapAt 6 x
+    (x : xs) -> wrapAt 9 x <> go xs
    where
+    wrapAt :: Int -> Text -> Text
+    wrapAt k = wrapWith " " k wrap . T.words
+
     go :: [Text] -> Text = \case
       []       -> ""
-      (y : ys) -> "\n" <> T.replicate n " " <> y <> go ys
+      (y : ys) -> "\n" <> T.replicate n " " <>
+                wrapWith " " 9 wrap (T.words y)
+                <> go ys
 
   {- | Slap a 'Section' in front of some 'Text', then pretty print the first
      word (i.e. everything until the first space character) in some nice amber
