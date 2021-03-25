@@ -13,7 +13,7 @@ works for now and it's pretty easy to rewrite" kind of way.
 -}
 module HTML.Parser
   ( searchForWord  -- :: Manager -> String -> IO [String]
-  , lookupWord     -- :: Manager -> [Section] -> String -> IO Text
+  , lookupWord     -- :: Manager -> [Section] -> Natural -> String -> IO Text
   ) where
 
 import qualified Data.Text as T
@@ -47,7 +47,7 @@ searchForWord man word =
        .> T.filter (/= '\173')  -- "-"
 
 -- | Look up the entry for a word on the Duden website.
-lookupWord :: Manager -> [Section] -> Int -> String -> IO Text
+lookupWord :: Manager -> [Section] -> Natural -> String -> IO Text
 lookupWord man sns wrap word =
   catch do tags <- makeRequestWith wordPage word >>= getTags man
            ppWord DudenWord{ name      = fromString   word

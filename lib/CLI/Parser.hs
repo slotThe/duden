@@ -16,8 +16,9 @@ import HTML.Types (Section (Meaning, Synonyms, Usage, WordClass))
 
 import qualified Data.Attoparsec.Text as A
 
-import Options.Applicative (Parser, ParserInfo, argument, auto, footer, fullDesc, header, help, helper, info, long, metavar, option, short, str, switch, value)
-import Options.Applicative.Util (AttoParser, anyOf, showSepChars, splitWith)
+import Options.Applicative (Parser, ParserInfo, argument, auto, footer, fullDesc, header, help, helper, info, long, metavar, option, short, str, switch, value, ReadM)
+import Options.Applicative.Util (AttoParser, anyOf, showSepChars, splitWith, attoReadM)
+import Data.Attoparsec.Text ((<?>))
 
 
 -- | Options the user may give to the tool via the command line.
@@ -27,7 +28,7 @@ data Options = Options
   , sections   :: ![Section]  -- ^ What to show
   , onlyUsage  :: !Bool       -- ^ Only show the usage field
   , onlyLookup :: !Bool       -- ^ Look up this word directly
-  , wrap       :: !Int        -- ^ When to wrap the text
+  , wrap       :: !Natural    -- ^ When to wrap the text
   }
 
 -- | Create an info type from our options, adding help text and other nice
@@ -106,15 +107,22 @@ pLookup = switch
    )
 
 -- | When to wrap the text in columns.
-pWrap :: Parser Int
-pWrap = option auto
+pWrap :: Parser Natural
+pWrap = option pWrap'
    ( short 'w'
   <> long "wrap"
   <> metavar "N"
-  <> help "Wrap text at N columns.  N has to be a natural number; a \
-          \value of 0 indicates no line wrapping.  Default: 0"
+  <> help "Wrap text at N columns.  N has to be a natural number \
+          \above 29 or 0.  A value of 0 indicates no line wrapping.  \
+          \Default: 0"
   <> value 0
    )
+ where
+  pWrap' :: ReadM Natural =
+    (A.decimal >>= \n -> if n == 0 || n >= 30 then pure n else empty
+      <?> "pWrap: Argument should be at least 30 (or 0)")
+    & attoReadM
+
 
 -- | Our separator characters.
 sepChars :: [Char]

@@ -1,7 +1,7 @@
 {- |
    Module      : Prelude
    Description : Small custom prelude for commonly used things
-   Copyright   : (c) slotThe, 2020
+   Copyright   : (c) slotThe  2020 2021
    License     : AGPL
    Maintainer  : slotThe <soliditsallgood@mailbox.org>
    Stability   : experimental
@@ -25,6 +25,7 @@ module Prelude
     -- * Misc
   , nonEmpty    -- :: [a] -> Maybe (NonEmpty a)
   , (.>)        -- :: (a -> b) -> (b -> c) -> (a -> c)
+  , fi          -- :: (Integral a, Num b) => a -> b
   ) where
 
 import BasePrelude as Exports hiding (option, unlines, writeFile)
@@ -58,3 +59,6 @@ infixr 9 .>
 -- | Covariant version of '(.)'.
 (.>) :: (a -> b) -> (b -> c) -> (a -> c)
 (.>) = (>>>)
+
+fi :: (Integral a, Num b) => a -> b
+fi = fromIntegral

@@ -22,7 +22,7 @@ module HTML.Types
   , Section(..)      -- instances: Eq, Show
 
     -- * Pretty printing
-  , ppWord           -- :: DudenWord -> [Section] -> Text
+  , ppWord           -- :: DudenWord -> Natural -> [Section] -> Text
   ) where
 
 import HTML.Util (wrapWith)
@@ -64,18 +64,18 @@ instance Show Section where
     Synonyms  -> "Synonyme: "
 
 -- | Pretty print the given 'Section's of a single word entry.
-ppWord :: DudenWord -> Int -> [Section] -> Text
+ppWord :: DudenWord -> Natural -> [Section] -> Text
 ppWord dw@DudenWord{ name } wrap =
   map (ppSection dw wrap) .> catMaybes .> (wordName :) .> unlines
  where
   wordName :: Text = mconcat
     [ style 1 name  -- 1 = bold
     , "\n"
-    , T.replicate (if wrap == 0 then 79 else wrap) "-"
+    , T.replicate (if wrap == 0 then 79 else fi wrap) "-"
     ]
 
 -- | Given a word entry, pretty print a single 'Section' (if present).
-ppSection :: DudenWord -> Int -> Section -> Maybe Text
+ppSection :: DudenWord -> Natural -> Section -> Maybe Text
 ppSection DudenWord{ meaning, usage, wordClass, synonyms } wrap = \case
   WordClass -> wordClass <&> pp WordClass
   Usage     -> usage     <&> pp Usage
@@ -85,7 +85,7 @@ ppSection DudenWord{ meaning, usage, wordClass, synonyms } wrap = \case
   wrapSynonyms :: Text -> Text
      = T.splitOn ","
     .> map T.strip
-    .> wrapWith ", " (T.length (tshow Synonyms)) wrap
+    .> wrapWith ", " (T.length (tshow Synonyms)) (fi wrap)
 
   ppMeaning :: WordMeaning -> Text
   ppMeaning = \case
@@ -114,12 +114,12 @@ ppSection DudenWord{ meaning, usage, wordClass, synonyms } wrap = \case
     (x : xs) -> wrapAt 9 x <> go xs
    where
     wrapAt :: Int -> Text -> Text
-    wrapAt k = wrapWith " " k wrap . T.words
+    wrapAt k = wrapWith " " k (fi wrap) . T.words
 
     go :: [Text] -> Text = \case
       []       -> ""
       (y : ys) -> "\n" <> T.replicate n " " <>
-                wrapWith " " 9 wrap (T.words y)
+                wrapWith " " 9 (fi wrap) (T.words y)
                 <> go ys
 
   {- | Slap a 'Section' in front of some 'Text', then pretty print the first

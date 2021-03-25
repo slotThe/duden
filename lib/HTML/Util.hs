@@ -104,12 +104,13 @@ wrapWith separator al wrapAt chunks
      -> ByteString
   go !done _   !_   []        = done
   go !line sep !acc xs@(c:cs)
-      -- If the chunk itself is bigger than our threshold then break
-      -- it anyways, aggressively.
-    | cLen    >= wrapAt = go (go line " " acc (BS.words c)) sep newLen cs
-    | combLen >= wrapAt = go (align line)                   sep al     xs
-    | otherwise         = go (mconcat [line, c, end])       sep newLen cs
+    | cLen      >= wrapAt = go goAgain                  sep newLen cs
+    | al + cLen >= wrapAt = go (goAgain <> ", ")        sep newLen cs
+    | combLen   >= wrapAt = go (align line)             sep al     xs
+    | otherwise           = go (mconcat [line, c, end]) sep newLen cs
    where
+    goAgain :: ByteString = go line " " acc (BS.words c)
+
     cLen    :: Int = BS.length c
     combLen :: Int = acc + cLen               -- Length including the next word
     newLen  :: Int = combLen + BS.length end  -- Take separator length into account
