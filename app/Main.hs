@@ -33,7 +33,7 @@ main = do
   then putTextLn =<< lookupWord man sns wrap word
   else do
     ws <- searchForWord man word
-      >>= (if maxShown == 0 then id else take maxShown)
+      >>= (if maxShown == 0 then id else take (fi maxShown))
        .> mapConcurrently (lookupWord man sns wrap)
 
     -- Output words in the order they appear on the website.

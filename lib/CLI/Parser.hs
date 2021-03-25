@@ -24,7 +24,7 @@ import Data.Attoparsec.Text ((<?>))
 -- | Options the user may give to the tool via the command line.
 data Options = Options
   { word       :: !String     -- ^ Positional argument: word to look up
-  , maxShown   :: !Int        -- ^ Max hits to show
+  , maxShown   :: !Natural    -- ^ Max hits to show
   , sections   :: ![Section]  -- ^ What to show
   , onlyUsage  :: !Bool       -- ^ Only show the usage field
   , onlyLookup :: !Bool       -- ^ Look up this word directly
@@ -59,7 +59,7 @@ pWord :: Parser String
 pWord = argument str (metavar "STR")
 
 -- | Max hits to show.
-pMaxShown :: Parser Int
+pMaxShown :: Parser Natural
 pMaxShown = option auto
    ( short 'm'
   <> long "max-shown"
@@ -122,7 +122,6 @@ pWrap = option pWrap'
     (A.decimal >>= \n -> if n == 0 || n >= 30 then pure n else empty
       <?> "pWrap: Argument should be at least 30 (or 0)")
     & attoReadM
-
 
 -- | Our separator characters.
 sepChars :: [Char]
