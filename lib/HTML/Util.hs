@@ -81,9 +81,8 @@ divTag t = TagOpen "div" [Attr "class" "division ", Attr "id" t]
 
 -- | This kind of tag is often used at the start of a certain section.
 infoTag :: Text -> Token
-infoTag t = TagOpen "a" [ Attr "target" "_blank"
-                        , Attr "class"  "info-ref"
-                        , Attr "href"   ("/hilfe/" <> t)
+infoTag t = TagOpen "a" [ Attr "class" "tuple__icon"
+                        , Attr "href"  ("/hilfe/" <> t)
                         ]
 
 -- | Wrap text at @N@ columns.
