@@ -21,7 +21,7 @@ import qualified Data.Text as T
 import Data.Map.Strict (Map)
 import HTML.Types (DudenWord (DudenWord, meaning, name, synonyms, usage, wordClass), Section, WordMeaning (Multiple, Single), ppWord)
 import HTML.Util (betweenTupleVal, divTag, getTags, infoTag, makeRequestWith, notNull)
-import Network.HTTP.Conduit (Manager, parseRequest)
+import Network.HTTP.Client (Manager, parseRequest)
 import Text.HTML.Parser (Attr (Attr), Token (TagClose, TagOpen))
 import Text.HTML.Parser.Utils (allContentText, between, dropHeader, fromContentText, isContentText, section, sections, toHeadContentText, (~==))
 

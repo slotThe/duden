@@ -16,7 +16,8 @@ import HTML.Parser (lookupWord, searchForWord)
 import HTML.Types (Section (Usage))
 
 import Control.Concurrent.Async (mapConcurrently)
-import Network.HTTP.Conduit (newManager, tlsManagerSettings)
+import Network.HTTP.Client (newManager)
+import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Options.Applicative (execParser)
 
 

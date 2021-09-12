@@ -36,7 +36,8 @@ dependencies:
     mixin: hiding (Prelude)
   - base-prelude
   - containers
-  - http-conduit
+  - http-client
+  - http-client-tls
   - async
   - text
   - bytestring

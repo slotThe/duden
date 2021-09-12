@@ -4,7 +4,7 @@ cabal-version: 2.0
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 062f64380c4ba36b2cb3f230d1ba95b9809dbfff1650082f4837c04fd3e4d425
+-- hash: 6077df21cf7d90ad336e9883fcd287281f9114ff93c50d563d061e45bf1641d3
 
 name:                duden
 version:             0.1.0
@@ -46,7 +46,8 @@ library
     , containers
     , html-parse
     , html-parse-utils
-    , http-conduit
+    , http-client
+    , http-client-tls
     , optparse-applicative
     , optparse-applicative-util
     , text
@@ -79,7 +80,8 @@ executable duden
     , duden
     , html-parse
     , html-parse-utils
-    , http-conduit
+    , http-client
+    , http-client-tls
     , optparse-applicative
     , optparse-applicative-util
     , text

@@ -30,7 +30,7 @@ import qualified Data.ByteString.Char8      as BS
 import qualified Data.ByteString.Lazy.Char8 as BL
 
 import Data.Text.Encoding (encodeUtf8)
-import Network.HTTP.Conduit (Manager, Request, httpLbs, parseRequest, responseBody)
+import Network.HTTP.Client (Manager, Request, httpLbs, parseRequest, responseBody)
 import Text.HTML.Parser (Attr (Attr), Token (TagClose, TagOpen), parseTokens)
 import Text.HTML.Parser.Utils (between, sections, toHeadContentText, (~==))
 
