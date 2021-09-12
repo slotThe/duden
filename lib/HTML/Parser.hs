@@ -23,7 +23,7 @@ import HTML.Types (DudenWord (DudenWord, meaning, name, synonyms, usage, wordCla
 import HTML.Util (betweenTupleVal, divTag, getTags, infoTag, makeRequestWith, notNull)
 import Network.HTTP.Conduit (Manager, parseRequest)
 import Text.HTML.Parser (Attr (Attr), Token (TagClose, TagOpen))
-import Text.HTML.Parser.Utils (allContentText, between, dropHeader, fromContentText, isContentText, section, sections, (~==))
+import Text.HTML.Parser.Utils (allContentText, between, dropHeader, fromContentText, isContentText, section, sections, toHeadContentText, (~==))
 
 
 -- | Search for the word on the Duden website.
@@ -97,11 +97,19 @@ getMeaning tags
      = tags
      & section (~== meanings)
     .> sections (~== enumItem)
-    .> map (between enumItem enumItem
-            .> sections (~== meaningsText)
-            .> map getText)
+    .> map (between enumItem enumItem .> pItems)
     .> zip [1 ..]
     .> fromList
+   where
+    pItems :: [Token] -> [Text]
+    pItems tokens = zipWith
+      (\sec usage -> sec <> if T.null usage then "" else " [" <> usage <> "]")
+      (map getText secs)
+      usages
+     where
+      secs   = sections (~== meaningsText) tokens
+      usages = secs <&> between tupleVal (TagClose "dd")
+                     .> toHeadContentText
 
   multiMeanings :: [Text]
      = tags
@@ -118,6 +126,7 @@ getMeaning tags
   meanings     :: Token = divTag "bedeutungen"
   meaningsText :: Token = TagOpen "div" [Attr "class" "enumeration__text"]
   enumItem     :: Token = TagOpen "li"  [Attr "class" "enumeration__item"]
+  tupleVal     :: Token = TagOpen "dd"  [Attr "class" "tuple__val"]
 
 -- | Searching for a word.
 wordSearch :: String -> String
