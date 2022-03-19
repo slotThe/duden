@@ -1,10 +1,10 @@
 cabal-version: 2.0
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.34.6.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6077df21cf7d90ad336e9883fcd287281f9114ff93c50d563d061e45bf1641d3
+-- hash: 8a8613ed782677da9b40630dc8e01aff094c613b4b9bdffd52bd96b088b15048
 
 name:                duden
 version:             0.1.0
@@ -25,6 +25,8 @@ library
       HTML.Util
       Prelude
   other-modules:
+      Paths_duden
+  autogen-modules:
       Paths_duden
   hs-source-dirs:
       lib
@@ -58,6 +60,8 @@ library
 executable duden
   main-is: Main.hs
   other-modules:
+      Paths_duden
+  autogen-modules:
       Paths_duden
   hs-source-dirs:
       app
