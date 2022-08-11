@@ -17,7 +17,7 @@ import HTML.Types (Section (Meaning, Synonyms, Usage, WordClass))
 import qualified Data.Attoparsec.Text as A
 
 import Options.Applicative (Parser, ParserInfo, argument, auto, footer, fullDesc, header, help, helper, info, long, metavar, option, short, str, switch, value, ReadM)
-import Options.Applicative.Util (AttoParser, anyOf, showSepChars, splitWith, attoReadM)
+import Options.Applicative.CmdLine.Util (AttoParser, anyOf, attoReadM, optionA, showSepChars, splitWith)
 import Data.Attoparsec.Text ((<?>))
 
 
@@ -71,7 +71,7 @@ pMaxShown = option auto
 
 -- | Sections to be displayed, making sure that no sections appear twice.
 pSections :: Parser [Section]
-pSections = nub <$> option (pSection `splitWith` sepChars)
+pSections = nub <$> optionA (pSection `splitWith` sepChars)
    ( long "sections"
   <> short 's'
   <> metavar "S"
