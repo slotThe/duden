@@ -45,7 +45,7 @@ dependencies:
   - html-parse
   - html-parse-utils
   - optparse-applicative
-  - optparse-applicative-util
+  - optparse-applicative-cmdline-util
 
 executables:
   duden:

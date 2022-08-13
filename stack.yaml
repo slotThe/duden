@@ -6,7 +6,6 @@ packages:
 extra-deps:
   - git: https://github.com/bgamari/html-parse.git
     commit: 52fa100da5d4d20ad3497b4a09a31b71528a10fb
-  - git: https://gitlab.com/slotThe/optparse-applicative-util.git
-    commit: f2cf8c53eef5bff4d6b94e542febc68aad0af3f8
   - git: https://gitlab.com/slotThe/html-parse-utils.git
     commit: 7401e85ebe4547a9a727bf659cae594d0080ae63
+  - optparse-applicative-cmdline-util-0.2.0
