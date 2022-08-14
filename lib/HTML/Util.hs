@@ -32,7 +32,7 @@ import qualified Data.ByteString.Lazy.Char8 as BL
 import Data.Text.Encoding (encodeUtf8)
 import Network.HTTP.Client (Manager, Request, httpLbs, parseRequest, responseBody)
 import Text.HTML.Parser (Attr (Attr), Token (TagClose, TagOpen), parseTokens)
-import Text.HTML.Parser.Utils (between, sections, toHeadContentText, (~==))
+import Text.HTML.Parser.Util (between, sections, toHeadContentText, (~==))
 
 
 -- | Make a request and parse the response body into 'Token's.

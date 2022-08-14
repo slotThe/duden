@@ -47,7 +47,7 @@ library
     , bytestring
     , containers
     , html-parse
-    , html-parse-utils
+    , html-parse-util
     , http-client
     , http-client-tls
     , optparse-applicative
@@ -83,7 +83,7 @@ executable duden
     , containers
     , duden
     , html-parse
-    , html-parse-utils
+    , html-parse-util
     , http-client
     , http-client-tls
     , optparse-applicative
