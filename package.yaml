@@ -56,3 +56,8 @@ executables:
       -threaded
       -rtsopts
       -with-rtsopts=-N
+# For building static executables (for this to work properly, one must
+# be on a system that runs musl):
+#      -static
+#    cc-options: -static
+#    ld-options: -static -pthread
