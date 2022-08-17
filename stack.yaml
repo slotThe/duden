@@ -4,8 +4,10 @@ packages:
   - .
 
 extra-deps:
+  - optparse-applicative-cmdline-util-0.2.0
   - git: https://github.com/bgamari/html-parse.git
     commit: 52fa100da5d4d20ad3497b4a09a31b71528a10fb
   - git: https://gitlab.com/slotThe/html-parse-utils.git
     commit: a70f810ab686facf4abc6ed802cf1ea39792f73b
-  - optparse-applicative-cmdline-util-0.2.0
+  - git: https://gitlab.com/slotThe/cmdline-util
+    commit: c6f305793f4a8c473a2e4a7c5601e6a5f1954abc

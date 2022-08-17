@@ -23,13 +23,10 @@ module HTML.Util
   , cleanWord          -- :: String -> String
   , notNullWith        -- :: Foldable t => (t a -> a) -> t a -> Maybe a
   , notNull            -- :: Monoid a => [a] -> Maybe a
-  , wrapWith           -- :: Text -> Int -> Int -> [Text] -> Text
   ) where
 
-import qualified Data.ByteString.Char8      as BS
 import qualified Data.ByteString.Lazy.Char8 as BL
 
-import Data.Text.Encoding (encodeUtf8)
 import Network.HTTP.Client (Manager, Request, httpLbs, parseRequest, responseBody)
 import Text.HTML.Parser (Attr (Attr), Token (TagClose, TagOpen), parseTokens)
 import Text.HTML.Parser.Util (between, sections, toHeadContentText, (~==))
@@ -84,40 +81,3 @@ infoTag :: Text -> Token
 infoTag t = TagOpen "a" [ Attr "class" "tuple__icon"
                         , Attr "href"  ("/hilfe/" <> t)
                         ]
-
--- | Wrap text at @N@ columns.
-wrapWith
-  :: Text    -- ^ How to concatenate chunks, i.e. the separator
-  -> Int     -- ^ Left alignment
-  -> Int     -- ^ Max line length (wrap)
-  -> [Text]  -- ^ Text as chunks that have to stay together
-  -> Text    -- ^ Text with line breaks
-wrapWith separator al wrapAt chunks
-  | wrapAt == 0 = mconcat $ intersperse separator chunks
-  | otherwise   = decodeUtf8 $ go "" (encodeUtf8 separator) al (map encodeUtf8 chunks)
- where
-  go :: ByteString  -- ^ Already processed part of the text
-     -> ByteString  -- ^ Separator to put between chunks
-     -> Int         -- ^ Counter of the current line length
-     -> [ByteString]  -- ^ Text as chunks that have to stay together
-     -> ByteString
-  go !done _   !_   []        = done
-  go !line sep !acc xs@(c:cs)
-    | cLen      >= wrapAt = go goAgain                  sep newLen cs
-    | al + cLen >= wrapAt = go (goAgain <> ", ")        sep newLen cs
-    | combLen   >= wrapAt = go (align line)             sep al     xs
-    | otherwise           = go (mconcat [line, c, end]) sep newLen cs
-   where
-    goAgain :: ByteString = go line " " acc (BS.words c)
-
-    cLen    :: Int = BS.length c
-    combLen :: Int = acc + cLen               -- Length including the next word
-    newLen  :: Int = combLen + BS.length end  -- Take separator length into account
-
-    -- | Nicely left-align the text after a line-break.  We like
-    -- pretty things.
-    align :: ByteString -> ByteString
-    align = (<> "\n" <> BS.replicate al ' ')
-
-    end :: ByteString
-    end = if null cs then "" else sep

@@ -25,12 +25,10 @@ module HTML.Types
   , ppWord           -- :: DudenWord -> Natural -> [Section] -> Text
   ) where
 
-import HTML.Util (wrapWith)
-
-import qualified Data.Text as T
-
+import CmdLine.Util (wrapText)
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
+import qualified Data.Text as T
 
 
 -- | Entry for a single word where not all sections have to be present.
@@ -85,7 +83,7 @@ ppSection DudenWord{ meaning, usage, wordClass, synonyms } wrap = \case
   wrapSynonyms :: Text -> Text
      = T.splitOn ","
     .> map T.strip
-    .> wrapWith ", " (T.length (tshow Synonyms)) (fi wrap)
+    .> wrapText ", " (T.length (tshow Synonyms)) (fi wrap)
 
   ppMeaning :: WordMeaning -> Text
   ppMeaning = \case
@@ -114,12 +112,12 @@ ppSection DudenWord{ meaning, usage, wordClass, synonyms } wrap = \case
     (x : xs) -> wrapAt 9 x <> go xs
    where
     wrapAt :: Int -> Text -> Text
-    wrapAt k = wrapWith " " k (fi wrap) . T.words
+    wrapAt k = wrapText " " k (fi wrap) . T.words
 
     go :: [Text] -> Text = \case
       []       -> ""
       (y : ys) -> "\n" <> T.replicate n " " <>
-                wrapWith " " 9 (fi wrap) (T.words y)
+                wrapText " " 9 (fi wrap) (T.words y)
                 <> go ys
 
   {- | Slap a 'Section' in front of some 'Text', then pretty print the first
