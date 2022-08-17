@@ -1,3 +1,5 @@
 .stack-work
 .hie
 *.htm
+stack.yaml.lock
+dist-newstyle
