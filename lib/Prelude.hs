@@ -28,7 +28,7 @@ module Prelude
   , fi          -- :: (Integral a, Num b) => a -> b
   ) where
 
-import BasePrelude as Exports hiding (option, unlines, writeFile)
+import BasePrelude as Exports hiding (unlines, writeFile)
 
 import qualified Data.ByteString      as BS
 import qualified Data.ByteString.Lazy as BL
