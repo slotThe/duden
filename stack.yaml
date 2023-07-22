@@ -1,13 +1,14 @@
-resolver: lts-20.16
+resolver: lts-21.0
 
 packages:
   - .
 
 extra-deps:
   - optparse-applicative-cmdline-util-0.2.0
+  - html-parse-util-0.2.3
   - git: https://github.com/bgamari/html-parse.git
-    commit: 52fa100da5d4d20ad3497b4a09a31b71528a10fb
-  - git: https://gitlab.com/slotThe/html-parse-utils.git
-    commit: 5db79b424039527b703f5e1df83fe41d8673daf7
+    commit: 4a46e25e518fa477de20bc72bc764697cdff6c3a
   - git: https://gitlab.com/slotThe/cmdline-util
-    commit: 1e75b67c8948e252ef3758c69efbf6a7ffa4c44d
+    commit: c5d6e3832b38769be649b8dae2dd8f4659ead577
+
+allow-newer: true
