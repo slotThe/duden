@@ -56,7 +56,7 @@ pOptions =
 
 -- | Word to look up.
 pWord :: Parser String
-pWord = argument str (metavar "STR")
+pWord = unwords <$> some (argument str (metavar "STR"))
 
 -- | Max hits to show.
 pMaxShown :: Parser Natural
